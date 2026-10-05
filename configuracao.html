@@ -5,11 +5,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Expert - Configurações</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=4.0">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0B132B">
 </head>
 <body>
+
+  <!-- Script para destruir cache antiga do Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
 
   <header>
     <div class="nav-container">
