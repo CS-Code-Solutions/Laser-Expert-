@@ -115,7 +115,6 @@
       }
     }
 
-    // Executa imediatamente ou aguarda o DOM se ainda estiver a carregar
     if (document.readyState === 'loading') {
       document.addEventListener("DOMContentLoaded", renderHistory);
     } else {
@@ -161,7 +160,17 @@
     }
 
     function gerarPayloadPix(chave, nome, cidade, valor, txid = "***") {
-        const chaveLimpa = chave.trim();
+        let chaveLimpa = chave.trim();
+        if (chaveLimpa.includes('@')) {
+            // E-mail
+        } else if (chaveLimpa.length === 36 && chaveLimpa.split('-').length === 5) {
+            // UUID
+        } else if (chaveLimpa.startsWith('+')) {
+            chaveLimpa = '+' + chaveLimpa.replace(/\D/g, '');
+        } else {
+            chaveLimpa = chaveLimpa.replace(/\D/g, '');
+        }
+
         const format = (id, val) => {
             const len = String(val.length).padStart(2, '0');
             return `${id}${len}${val}`;
@@ -290,23 +299,20 @@
       const combustivelHtml = rep.temCombustivel === 'sim' ? `<p>• <strong>Combustível:</strong> ${rep.combustivelLitros || 0} L a R$ ${Number(rep.valorLitro || 0).toFixed(2)}/L = R$ ${valorCombustivelTotal.toFixed(2)}</p>` : '';
       const despesasHtml = rep.temDespesas === 'sim' ? `<p>• <strong>Outras Despesas / Pedágio:</strong> R$ ${valorAdicional.toFixed(2)}</p>` : '';
 
-      const bankInfoHtml = (config.bank || config.agency || config.account) ? `
-        <p><strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
-      ` : '';
-
-      const pixSectionHtml = config.pix ? `
+      // Nova formatação solicitada para Dados Bancários e PIX
+      const pixSectionHtml = `
         <div class="section-box" style="display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
-          <div>
-            <div class="section-title" style="border:none; margin-bottom:4px; padding:0;">Dados Bancários / Pagamento PIX</div>
-            ${bankInfoHtml}
-            <p><strong>Chave PIX:</strong> ${config.pix}</p>
-            <p style="font-size: 10px; color: #555; margin-top: 6px;">Escaneie o QR Code com o aplicativo do banco para efetuar o pagamento do valor total.</p>
+          <div style="flex: 1; padding-right: 12px;">
+            <div class="section-title" style="border:none; margin-bottom:6px; padding:0;">Dados Bancários & Pagamento PIX</div>
+            <p style="margin-bottom: 4px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
+            <p style="margin-bottom: 6px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix || '-'} | <strong>Favorecido:</strong> ${config.name || '-'}</p>
+            <p style="font-size: 10px; color: #555; margin-top: 4px;">Escaneie o QR Code ao lado para efetuar o pagamento do valor total.</p>
           </div>
-          <div style="text-align: center; background: #FFF; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px;">
+          <div style="text-align: center; background: #FFF; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; min-width: 120px;">
             <img src="${qrCodeUrl}" alt="QR Code PIX" style="width: 110px; height: 110px; display: block; margin: 0 auto;">
             <span style="font-size: 9px; font-weight: bold; display: block; margin-top: 2px;">PIX Copia e Cola</span>
           </div>
-        </div>` : '';
+        </div>`;
 
       let anexosHtml = '';
       if (rep.anexos && rep.anexos.length > 0) {
