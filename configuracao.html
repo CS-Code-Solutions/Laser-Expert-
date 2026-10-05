@@ -5,22 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Expert - Configurações</title>
-    <link rel="stylesheet" href="style.css?v=4.0">
+    <link rel="stylesheet" href="style.css?v=4.1">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0B132B">
 </head>
 <body>
-
-  <!-- Script para destruir cache antiga do Service Worker -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-        }
-      });
-    }
-  </script>
 
   <header>
     <div class="nav-container">
@@ -120,7 +109,7 @@
       
       <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
         <!-- Botão de Fazer Backup -->
-        <button type="button" onclick="fazerBackup()" class="btn" style="background-color: #2563EB; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.95rem;">
+        <button type="button" id="btn-backup" class="btn" style="background-color: #2563EB; color: white; padding: 10px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.95rem;">
           📥 Descarregar Backup (JSON)
         </button>
 
@@ -128,7 +117,7 @@
         <label for="input-restore" class="btn" style="background-color: #059669; color: white; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; display: inline-block; margin: 0; font-size: 0.95rem;">
           📤 Restaurar Backup
         </label>
-        <input type="file" id="input-restore" accept=".json" style="display: none;" onchange="restaurarBackup(event)">
+        <input type="file" id="input-restore" accept=".json" style="display: none;">
       </div>
     </section>
   </main>
@@ -138,115 +127,117 @@
   </footer>
 
   <script>
-    const defaultConfig = {
-        name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA',
-        tech: 'Otávio Barbosa',
-        doc: '48.959.536/0001-65',
-        nextRs: '1001',
-        pix: 'comercial@laserexpertbr.com.br',
-        bank: '',
-        agency: '',
-        account: '',
-        email: 'comercial@laserexpertbr.com.br',
-        contact: '+55 51 98144-1865',
-        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
-    };
-
-    let savedConfig = defaultConfig;
-    try {
-        const localData = localStorage.getItem('rg_config');
-        if (localData) {
-            savedConfig = JSON.parse(localData);
-        }
-    } catch (e) {
-        console.error("Erro ao carregar configurações", e);
-    }
-
-    document.getElementById('configName').value = savedConfig.name || defaultConfig.name;
-    document.getElementById('configTech').value = savedConfig.tech || defaultConfig.tech;
-    document.getElementById('configDoc').value = savedConfig.doc || defaultConfig.doc;
-    document.getElementById('configNextRs').value = savedConfig.nextRs || defaultConfig.nextRs;
-    document.getElementById('configPix').value = savedConfig.pix || defaultConfig.pix;
-    document.getElementById('configBank').value = savedConfig.bank || '';
-    document.getElementById('configAgency').value = savedConfig.agency || '';
-    document.getElementById('configAccount').value = savedConfig.account || '';
-    document.getElementById('configEmail').value = savedConfig.email || defaultConfig.email;
-    document.getElementById('configContact').value = savedConfig.contact || defaultConfig.contact;
-    document.getElementById('configLocation').value = savedConfig.location || defaultConfig.location;
-
-    document.getElementById('configForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const configData = {
-            name: document.getElementById('configName').value,
-            tech: document.getElementById('configTech').value,
-            doc: document.getElementById('configDoc').value,
-            nextRs: document.getElementById('configNextRs').value,
-            pix: document.getElementById('configPix').value,
-            bank: document.getElementById('configBank').value,
-            agency: document.getElementById('configAgency').value,
-            account: document.getElementById('configAccount').value,
-            email: document.getElementById('configEmail').value,
-            contact: document.getElementById('configContact').value,
-            location: document.getElementById('configLocation').value
-        };
-
-        localStorage.setItem('rg_config', JSON.stringify(configData));
-        alert('Configurações salvas com sucesso!');
-    });
-
-    // Função para exportar os dados do localStorage num ficheiro JSON
-    function fazerBackup() {
-      try {
-        const dadosBackup = {
-          rg_clients: localStorage.getItem('rg_clients'),
-          rg_machines: localStorage.getItem('rg_machines'),
-          rg_reports: localStorage.getItem('rg_reports'),
-          rg_config: localStorage.getItem('rg_config')
-        };
-
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        
-        const dataAtual = new Date().toISOString().slice(0, 10);
-        downloadAnchor.setAttribute("download", `laser_expert_backup_${dataAtual}.json`);
-        
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
-      } catch (e) {
-        alert("Erro ao gerar o backup: " + e.message);
-      }
-    }
-
-    // Função para ler o ficheiro JSON e restaurar para o localStorage
-    function restaurarBackup(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      if (!confirm("Atenção: Restaurar um backup irá substituir os dados atuais do dispositivo pelos dados do ficheiro. Deseja continuar?")) {
-        event.target.value = ''; // Limpa o input
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const dados = JSON.parse(e.target.result);
-          
-          if (dados.rg_clients) localStorage.setItem('rg_clients', dados.rg_clients);
-          if (dados.rg_machines) localStorage.setItem('rg_machines', dados.rg_machines);
-          if (dados.rg_reports) localStorage.setItem('rg_reports', dados.rg_reports);
-          if (dados.rg_config) localStorage.setItem('rg_config', dados.rg_config);
-
-          alert('Backup restaurado com sucesso! A aplicação será atualizada.');
-          location.reload();
-        } catch (err) {
-          alert('Erro ao processar o ficheiro de backup. Certifique-se de que selecionou um ficheiro .json válido.');
-        }
+    document.addEventListener("DOMContentLoaded", () => {
+      const defaultConfig = {
+          name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA',
+          tech: 'Otávio Barbosa',
+          doc: '48.959.536/0001-65',
+          nextRs: '1001',
+          pix: 'comercial@laserexpertbr.com.br',
+          bank: '',
+          agency: '',
+          account: '',
+          email: 'comercial@laserexpertbr.com.br',
+          contact: '+55 51 98144-1865',
+          location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
       };
-      reader.readAsText(file);
-    }
+
+      let savedConfig = defaultConfig;
+      try {
+          const localData = localStorage.getItem('rg_config');
+          if (localData) {
+              savedConfig = JSON.parse(localData);
+          }
+      } catch (e) {
+          console.error("Erro ao carregar configurações", e);
+      }
+
+      document.getElementById('configName').value = savedConfig.name || defaultConfig.name;
+      document.getElementById('configTech').value = savedConfig.tech || defaultConfig.tech;
+      document.getElementById('configDoc').value = savedConfig.doc || defaultConfig.doc;
+      document.getElementById('configNextRs').value = savedConfig.nextRs || defaultConfig.nextRs;
+      document.getElementById('configPix').value = savedConfig.pix || defaultConfig.pix;
+      document.getElementById('configBank').value = savedConfig.bank || '';
+      document.getElementById('configAgency').value = savedConfig.agency || '';
+      document.getElementById('configAccount').value = savedConfig.account || '';
+      document.getElementById('configEmail').value = savedConfig.email || defaultConfig.email;
+      document.getElementById('configContact').value = savedConfig.contact || defaultConfig.contact;
+      document.getElementById('configLocation').value = savedConfig.location || defaultConfig.location;
+
+      document.getElementById('configForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const configData = {
+              name: document.getElementById('configName').value,
+              tech: document.getElementById('configTech').value,
+              doc: document.getElementById('configDoc').value,
+              nextRs: document.getElementById('configNextRs').value,
+              pix: document.getElementById('configPix').value,
+              bank: document.getElementById('configBank').value,
+              agency: document.getElementById('configAgency').value,
+              account: document.getElementById('configAccount').value,
+              email: document.getElementById('configEmail').value,
+              contact: document.getElementById('configContact').value,
+              location: document.getElementById('configLocation').value
+          };
+
+          localStorage.setItem('rg_config', JSON.stringify(configData));
+          alert('Configurações salvas com sucesso!');
+      });
+
+      // Evento do Botão de Backup
+      document.getElementById('btn-backup').addEventListener('click', () => {
+        try {
+          const dadosBackup = {
+            rg_clients: localStorage.getItem('rg_clients') || '[]',
+            rg_machines: localStorage.getItem('rg_machines') || '[]',
+            rg_reports: localStorage.getItem('rg_reports') || '[]',
+            rg_config: localStorage.getItem('rg_config') || '{}'
+          };
+
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute("href", dataStr);
+          
+          const dataAtual = new Date().toISOString().slice(0, 10);
+          downloadAnchor.setAttribute("download", `laser_expert_backup_${dataAtual}.json`);
+          
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+        } catch (e) {
+          alert("Erro ao gerar o backup: " + e.message);
+        }
+      });
+
+      // Evento do Input de Restauração
+      document.getElementById('input-restore').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!confirm("Atenção: Restaurar um backup irá substituir os dados atuais do dispositivo pelos dados do ficheiro. Deseja continuar?")) {
+          event.target.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const dados = JSON.parse(e.target.result);
+            
+            if (dados.rg_clients) localStorage.setItem('rg_clients', dados.rg_clients);
+            if (dados.rg_machines) localStorage.setItem('rg_machines', dados.rg_machines);
+            if (dados.rg_reports) localStorage.setItem('rg_reports', dados.rg_reports);
+            if (dados.rg_config) localStorage.setItem('rg_config', dados.rg_config);
+
+            alert('Backup restaurado com sucesso! A aplicação será atualizada.');
+            location.reload();
+          } catch (err) {
+            alert('Erro ao processar o ficheiro de backup. Certifique-se de que selecionou um ficheiro .json válido.');
+          }
+        };
+        reader.readAsText(file);
+      });
+    });
   </script>
 </body>
 </html>
