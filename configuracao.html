@@ -32,23 +32,9 @@
     <section class="card" style="border-top-color: var(--success);">
       <h2>Configurações & Administração</h2>
       
-      <!-- Status do Sistema -->
-      <div style="background: var(--ice-white); padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+      <div style="background: var(--ice-white); padding: 12px; border-radius: 6px; margin-bottom: 20px;">
         <label style="margin-bottom: 0; font-weight: bold;">Status do Sistema:</label>
         <span style="color: var(--success); font-weight: 600;">🟢 Conectado (Armazenamento Local Ativo)</span>
-      </div>
-
-      <!-- NOVO PAINEL DE BACKUP (Posicionado no Topo com Estilo Compacto) -->
-      <div style="background: #EFF6FF; border: 1px solid var(--tech-blue); padding: 15px; border-radius: 6px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-        <div>
-          <strong style="color: var(--deep-navy); display: block; font-size: 0.95rem; margin-bottom: 2px;">💾 Gestão de Dados e Segurança</strong>
-          <span style="font-size: 0.85rem; color: #475569;">Exporte ou importe todas as informações do sistema num ficheiro JSON.</span>
-        </div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button type="button" id="btn-backup" class="btn" style="background-color: #2563EB; padding: 8px 14px; font-size: 0.85rem;">📥 Exportar Backup</button>
-          <label for="input-restore" class="btn" style="background-color: #059669; padding: 8px 14px; font-size: 0.85rem; cursor: pointer; margin: 0; display: inline-block;">📤 Importar Backup</label>
-          <input type="file" id="input-restore" accept=".json" style="display: none;">
-        </div>
       </div>
 
       <form id="configForm">
@@ -109,7 +95,18 @@
           <input type="text" id="configLocation" required>
         </div>
 
-        <button type="submit" class="btn" style="background: var(--success); width: 100%; padding: 12px; font-size: 1.05rem;">Salvar Dados da Empresa</button>
+        <!-- Botão principal para salvar os dados -->
+        <button type="submit" class="btn" style="background: var(--success); width: 100%; padding: 12px; font-size: 1.05rem; margin-bottom: 15px;">Salvar Dados da Empresa</button>
+      
+        <!-- Botões de Backup e Restauração Lado a Lado (Logo abaixo do botão Salvar) -->
+        <div style="border-top: 1px solid #E2E8F0; padding-top: 15px; margin-top: 10px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 8px; color: var(--deep-navy); font-size: 0.9rem;">Gestão de Cópia de Segurança (Backup):</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="btn-backup" class="btn" style="background-color: #2563EB; flex: 1; min-width: 140px; padding: 10px; font-size: 0.95rem;">📥 Exportar Backup</button>
+            <label for="input-restore" class="btn" style="background-color: #059669; flex: 1; min-width: 140px; padding: 10px; font-size: 0.95rem; text-align: center; cursor: pointer; margin: 0; display: inline-block; box-sizing: border-box;">📤 Importar Backup</label>
+            <input type="file" id="input-restore" accept=".json" style="display: none;">
+          </div>
+        </div>
       </form>
     </section>
   </main>
