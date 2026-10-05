@@ -1,19 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="icon" href="img/ico1.png" type="image/png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laser Expert - Teste de Atualização</title>
+    <title>Laser Expert - Configurações</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0B132B">
 </head>
 <body>
 
   <header>
     <div class="nav-container">
-      <a href="index.html" class="logo">Laser Expert</a>
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Laser Expert">
+      </a>
       <nav>
         <ul>
           <li><a href="index.html">Clientes</a></li>
+          <li><a href="maquinas.html">Máquinas</a></li>
+          <li><a href="novo-relatorio.html">Novo Relatório</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
           <li><a href="configuracao.html" class="active">Configuração</a></li>
         </ul>
       </nav>
@@ -21,33 +29,202 @@
   </header>
 
   <main>
-    <!-- TESTE VISUAL GIGANTE -->
-    <div style="background: yellow; color: red; padding: 25px; border: 5px solid red; text-align: center; margin-bottom: 20px; font-size: 1.2rem; font-weight: bold;">
-      ⚠️ TESTE DE ATUALIZAÇÃO DO GITHUB PAGES ⚠️️
-      <br><br>
-      <button type="button" id="btn-backup-teste" style="background: #2563EB; color: white; padding: 15px 25px; font-size: 1.1rem; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
-        📥 BOTÃO DE BACKUP DE TESTE
-      </button>
-    </div>
+    <section class="card" style="border-top-color: var(--success);">
+      <h2>Configurações & Administração</h2>
+      
+      <div style="background: var(--ice-white); padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+        <label style="margin-bottom: 0; font-weight: bold;">Status do Sistema:</label>
+        <span style="color: var(--success); font-weight: 600;">🟢 Conectado (Armazenamento Local Ativo)</span>
+      </div>
 
-    <section class="card">
-      <h2>Configurações da Empresa</h2>
       <form id="configForm">
+        <h3 style="margin-bottom: 15px; color: var(--deep-navy);">🏢 Dados da Empresa & Numeração de RS</h3>
+        
         <div class="form-group">
-          <label for="configName">Razão Social:</label>
+          <label for="configName">Razão Social / Nome:</label>
           <input type="text" id="configName" required>
         </div>
-        <button type="submit" class="btn" style="background: var(--success); width: 100%; padding: 12px;">Salvar Dados</button>
+
+        <div class="form-group">
+          <label for="configTech">Técnico / Responsável Padrão:</label>
+          <input type="text" id="configTech" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configDoc">CNPJ:</label>
+          <input type="text" id="configDoc" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configNextRs" style="color: var(--tech-blue);">Próximo Número de Sequência de RS (Inicial / Automático):</label>
+          <input type="number" id="configNextRs" required style="background: #EFF6FF; border-color: var(--tech-blue);">
+        </div>
+
+        <div class="form-group">
+          <label for="configPix">Chave PIX:</label>
+          <input type="text" id="configPix">
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+          <div style="flex: 2; min-width: 180px;" class="form-group">
+            <label for="configBank">Banco:</label>
+            <input type="text" id="configBank">
+          </div>
+          <div style="flex: 1; min-width: 110px;" class="form-group">
+            <label for="configAgency">Agência:</label>
+            <input type="text" id="configAgency">
+          </div>
+          <div style="flex: 1; min-width: 110px;" class="form-group">
+            <label for="configAccount">Conta:</label>
+            <input type="text" id="configAccount">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="configEmail">E-mail de Contato:</label>
+          <input type="email" id="configEmail" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configContact">Telefone / WhatsApp:</label>
+          <input type="text" id="configContact" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label for="configLocation">Endereço / Localização:</label>
+          <input type="text" id="configLocation" required>
+        </div>
+
+        <!-- Botão principal para salvar os dados -->
+        <button type="submit" class="btn" style="background: var(--success); width: 100%; padding: 12px; font-size: 1.05rem; margin-bottom: 15px;">Salvar Dados da Empresa</button>
+      
+        <!-- Botões de Backup e Restauração Lado a Lado (Logo abaixo do botão Salvar) -->
+        <div style="border-top: 1px solid #E2E8F0; padding-top: 15px; margin-top: 10px;">
+          <label style="display: block; font-weight: bold; margin-bottom: 8px; color: var(--deep-navy); font-size: 0.9rem;">Gestão de Cópia de Segurança (Backup):</label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button type="button" id="btn-backup" class="btn" style="background-color: #2563EB; flex: 1; min-width: 140px; padding: 10px; font-size: 0.95rem;">📥 Exportar Backup</button>
+            <label for="input-restore" class="btn" style="background-color: #059669; flex: 1; min-width: 140px; padding: 10px; font-size: 0.95rem; text-align: center; cursor: pointer; margin: 0; display: inline-block; box-sizing: border-box;">📤 Importar Backup</label>
+            <input type="file" id="input-restore" accept=".json" style="display: none;">
+          </div>
+        </div>
       </form>
     </section>
   </main>
 
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados.</p>
+  </footer>
+
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById('configName').value = "LASER EXPERT TESTE";
-      
-      document.getElementById('btn-backup-teste').addEventListener('click', () => {
-        alert("O botão de teste está a funcionar perfeitamente!");
+      const defaultConfig = {
+          name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA',
+          tech: 'Otávio Barbosa',
+          doc: '48.959.536/0001-65',
+          nextRs: '1001',
+          pix: 'comercial@laserexpertbr.com.br',
+          bank: '',
+          agency: '',
+          account: '',
+          email: 'comercial@laserexpertbr.com.br',
+          contact: '+55 51 98144-1865',
+          location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+      };
+
+      let savedConfig = defaultConfig;
+      try {
+          const localData = localStorage.getItem('rg_config');
+          if (localData) {
+              savedConfig = JSON.parse(localData);
+          }
+      } catch (e) {
+          console.error("Erro ao carregar configurações", e);
+      }
+
+      document.getElementById('configName').value = savedConfig.name || defaultConfig.name;
+      document.getElementById('configTech').value = savedConfig.tech || defaultConfig.tech;
+      document.getElementById('configDoc').value = savedConfig.doc || defaultConfig.doc;
+      document.getElementById('configNextRs').value = savedConfig.nextRs || defaultConfig.nextRs;
+      document.getElementById('configPix').value = savedConfig.pix || defaultConfig.pix;
+      document.getElementById('configBank').value = savedConfig.bank || '';
+      document.getElementById('configAgency').value = savedConfig.agency || '';
+      document.getElementById('configAccount').value = savedConfig.account || '';
+      document.getElementById('configEmail').value = savedConfig.email || defaultConfig.email;
+      document.getElementById('configContact').value = savedConfig.contact || defaultConfig.contact;
+      document.getElementById('configLocation').value = savedConfig.location || defaultConfig.location;
+
+      document.getElementById('configForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const configData = {
+              name: document.getElementById('configName').value,
+              tech: document.getElementById('configTech').value,
+              doc: document.getElementById('configDoc').value,
+              nextRs: document.getElementById('configNextRs').value,
+              pix: document.getElementById('configPix').value,
+              bank: document.getElementById('configBank').value,
+              agency: document.getElementById('configAgency').value,
+              account: document.getElementById('configAccount').value,
+              email: document.getElementById('configEmail').value,
+              contact: document.getElementById('configContact').value,
+              location: document.getElementById('configLocation').value
+          };
+
+          localStorage.setItem('rg_config', JSON.stringify(configData));
+          alert('Configurações salvas com sucesso!');
+      });
+
+      // Lógica do Backup (Exportar)
+      document.getElementById('btn-backup').addEventListener('click', () => {
+        try {
+          const dadosBackup = {
+            rg_clients: localStorage.getItem('rg_clients') || '[]',
+            rg_machines: localStorage.getItem('rg_machines') || '[]',
+            rg_reports: localStorage.getItem('rg_reports') || '[]',
+            rg_config: localStorage.getItem('rg_config') || '{}'
+          };
+
+          const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosBackup, null, 2));
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.setAttribute("href", dataStr);
+          
+          const dataAtual = new Date().toISOString().slice(0, 10);
+          downloadAnchor.setAttribute("download", `laser_expert_backup_${dataAtual}.json`);
+          
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          downloadAnchor.remove();
+        } catch (e) {
+          alert("Erro ao gerar o backup: " + e.message);
+        }
+      });
+
+      // Lógica da Restauração (Importar)
+      document.getElementById('input-restore').addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!confirm("Atenção: Restaurar um backup irá substituir os dados atuais do dispositivo pelos dados do ficheiro. Deseja continuar?")) {
+          event.target.value = '';
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          try {
+            const dados = JSON.parse(e.target.result);
+            
+            if (dados.rg_clients) localStorage.setItem('rg_clients', dados.rg_clients);
+            if (dados.rg_machines) localStorage.setItem('rg_machines', dados.rg_machines);
+            if (dados.rg_reports) localStorage.setItem('rg_reports', dados.rg_reports);
+            if (dados.rg_config) localStorage.setItem('rg_config', dados.rg_config);
+
+            alert('Backup restaurado com sucesso! A aplicação será atualizada.');
+            location.reload();
+          } catch (err) {
+            alert('Erro ao processar o ficheiro de backup. Certifique-se de que selecionou um ficheiro .json válido.');
+          }
+        };
+        reader.readAsText(file);
       });
     });
   </script>
