@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!--link rel="icon" href="img/ico1.png" type="image/png"-->
+  <link rel="icon" href="img/ico1.png" type="image/png">
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -209,6 +209,7 @@
         name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
         tech: 'Otávio Barbosa',
         doc: '48.959.536/0001-65',
+        email: 'comercial@laserexpertbr.com.br',
         contact: '+55 51 98144-1865',
         location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
         pix: 'comercial@laserexpertbr.com.br',
@@ -313,7 +314,6 @@
             .print-header img { height: 50px; width: auto; }
             .print-header-info { text-align: right; }
             .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
-            .print-header-info p { font-size: 10px; color: #333; margin: 1px 0; }
             .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; }
             .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
             .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -329,9 +329,19 @@
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
               <h1>RELATÓRIO DE SERVIÇO (RS)</h1>
-              <p><strong>${config.name}</strong></p>
-              <p>CNPJ: ${config.doc} | Fone/WhatsApp: ${config.contact}</p>
-              <p>${config.location}</p>
+              <p><strong>Nº do RS:</strong> ${rep.number} | <strong>Data:</strong> ${rep.date}</p>
+            </div>
+          </div>
+
+          <!-- DADOS DA EMPRESA (PRESTADOR) FIXOS ANTES DO CLIENTE -->
+          <div class="section-box">
+            <div class="section-title">Dados da Empresa / Prestador de Serviço</div>
+            <div class="grid-2">
+              <p><strong>Razão Social:</strong> ${config.name}</p>
+              <p><strong>CNPJ:</strong> ${config.doc}</p>
+              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
+              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
+              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
             </div>
           </div>
 
@@ -358,8 +368,6 @@
           <div class="section-box">
             <div class="section-title">Registro do Serviço Realizado</div>
             <div class="grid-2" style="margin-bottom: 6px;">
-              <p><strong>Nº do RS:</strong> ${rep.number}</p>
-              <p><strong>Data:</strong> ${rep.date}</p>
               <p><strong>Tipo de Manutenção:</strong> ${rep.serviceNature || '-'}</p>
               <p><strong>Área de Serviço:</strong> ${rep.serviceArea || '-'}</p>
             </div>
