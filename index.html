@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laser Expert - Cadastro de Clientes</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Logo">
+      </a>
+      <nav>
+        <ul>
+          <li><a href="index.html" class="active">Clientes</a></li>
+          <li><a href="maquinas.html">Máquinas</a></li>
+          <li><a href="novo-relatorio.html">Novo Relatório</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2 id="formTitle">Adicionar Novo Cliente</h2>
+      <form id="clientForm">
+        <input type="hidden" id="editIndex" value="">
+        <div class="form-group">
+          <label for="clientName">Nome / Razão Social</label>
+          <input type="text" id="clientName" required placeholder="Ex: Empresa Exemplo Lda">
+        </div>
+        <div class="form-group">
+          <label for="clientEmail">E-mail</label>
+          <input type="email" id="clientEmail" placeholder="exemplo@email.com">
+        </div>
+        <div class="form-group">
+          <label for="clientDoc">CPF / CNPJ</label>
+          <input type="text" id="clientDoc" required placeholder="00.000.000/0001-00">
+        </div>
+        <div class="form-group">
+          <label for="clientAddress">Morada / Endereço</label>
+          <input type="text" id="clientAddress" placeholder="Rua, Número, Cidade">
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+          <button type="submit" class="btn" id="saveBtn" style="background-color: #10B981;">Salvar Cliente</button>
+          <button type="button" class="btn" id="cancelBtn" style="background-color: #64748B; display: none;" onclick="resetForm()">Cancelar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Clientes Cadastrados</h2>
+      <div id="clientListContainer" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+        <!-- Dados injetados via JavaScript -->
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    const form = document.getElementById('clientForm');
+    const clientListContainer = document.getElementById('clientListContainer');
+    const formTitle = document.getElementById('formTitle');
+    const saveBtn = document.getElementById('saveBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const editIndexInput = document.getElementById('editIndex');
+
+    let clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
+
+    function renderClients() {
+      clientListContainer.innerHTML = '';
+      if(clients.length === 0) {
+        clientListContainer.innerHTML = '<p style="text-align: center; color: #64748B;">Nenhum cliente cadastrado.</p>';
+        return;
+      }
+      clients.forEach((c, index) => {
+        clientListContainer.innerHTML += `
+          <div style="border: 1px solid #CBD5E1; padding: 15px; border-radius: 6px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+            <div>
+              <strong style="font-size: 1.05rem; color: #0B132B;">${c.name}</strong><br>
+              <span style="font-size: 0.9rem; color: #475569;">Documento: ${c.doc} | E-mail: ${c.email || '-'}</span><br>
+              <span style="font-size: 0.9rem; color: #475569;">Endereço: ${c.address || '-'}</span>
+            </div>
+            <div style="display: flex; gap: 5px;">
+              <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #F59E0B;" onclick="editClient(${index})">Editar</button>
+              <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #EF4444;" onclick="deleteClient(${index})">Excluir</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editIdx = editIndexInput.value;
+      
+      const clientData = {
+        name: document.getElementById('clientName').value,
+        email: document.getElementById('clientEmail').value,
+        doc: document.getElementById('clientDoc').value,
+        address: document.getElementById('clientAddress').value
+      };
+
+      if(editIdx === "") {
+        clients.push(clientData);
+      } else {
+        clients[editIdx] = clientData;
+      }
+
+      localStorage.setItem('rg_clients', JSON.stringify(clients));
+      resetForm();
+      renderClients();
+    });
+
+    window.editClient = function(index) {
+      const c = clients[index];
+      document.getElementById('clientName').value = c.name;
+      document.getElementById('clientEmail').value = c.email || '';
+      document.getElementById('clientDoc').value = c.doc;
+      document.getElementById('clientAddress').value = c.address || '';
+      editIndexInput.value = index;
+      
+      formTitle.textContent = "Editar Cliente";
+      saveBtn.textContent = "Atualizar Cliente";
+      cancelBtn.style.display = 'inline-block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    window.resetForm = function() {
+      form.reset();
+      editIndexInput.value = "";
+      formTitle.textContent = "Adicionar Novo Cliente";
+      saveBtn.textContent = "Salvar Cliente";
+      cancelBtn.style.display = 'none';
+    }
+
+    window.deleteClient = function(index) {
+      if(confirm('Deseja realmente excluir este cliente?')) {
+        clients.splice(index, 1);
+        localStorage.setItem('rg_clients', JSON.stringify(clients));
+        renderClients();
+      }
+    }
+
+    renderClients();
+  </script>
+
+</body>
+</html>

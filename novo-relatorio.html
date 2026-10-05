@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" href="img/ico1.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Expert - Novo Relatório de Serviço</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0B132B">
+    <!-- Signature Pad CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Laser Expert">
+      </a>
+      <nav>
+        <ul>
+          <li><a href="index.html">Clientes</a></li>
+          <li><a href="maquinas.html">Máquinas</a></li>
+          <li><a href="novo-relatorio.html" class="active">Novo Relatório</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2 id="pageTitle">Novo Relatório de Serviço (RS)</h2>
+      
+      <form id="reportForm">
+        <!-- Seleção de Cliente -->
+        <div class="form-group">
+          <label for="reportClient">Cliente / Empresa</label>
+          <select id="reportClient" required>
+            <option value="">Selecione um cliente...</option>
+          </select>
+        </div>
+
+        <!-- Seleção de Máquina Cadastrada -->
+        <div class="form-group">
+          <label for="machineSelect">Equipamento (Cadastrado)</label>
+          <select id="machineSelect">
+            <option value="">Selecione o cliente primeiro...</option>
+          </select>
+        </div>
+
+        <!-- Dados do Equipamento -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="equipment">Nome / Equipamento</label>
+            <input type="text" id="equipment" required placeholder="Ex: Centro de Usinagem">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="brand">Marca</label>
+            <input type="text" id="brand" placeholder="Ex: Trumpf / Bystronic">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="model">Modelo</label>
+            <input type="text" id="model" placeholder="Ex: TruLaser 3030">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="serial-number">Matrícula / N° de Série</label>
+            <input type="text" id="serial-number" placeholder="Ex: SN-99823">
+          </div>
+        </div>
+
+        <!-- Número e Data do RS -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="reportNumber">Número do RS (Automático)</label>
+            <input type="text" id="reportNumber" required readonly style="background: var(--ice-white); font-weight: bold; color: var(--tech-blue);">
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="reportDate">Data do Atendimento</label>
+            <input type="date" id="reportDate" required>
+          </div>
+        </div>
+
+        <!-- Tipo e Área de Serviço -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="service-nature">Tipo de Manutenção</label>
+            <select id="service-nature">
+              <option value="Manutenção Corretiva">Corretiva</option>
+              <option value="Manutenção Preventiva/Preditiva">Preventiva / Preditiva</option>
+              <option value="Garantia">Garantia</option>
+              <option value="Suporte Técnico / Outros">Outros</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex: 1; min-width: 200px;">
+            <label for="service-area">Área de Serviço</label>
+            <select id="service-area" required>
+              <option value="Elétrica">Elétrica</option>
+              <option value="Mecânica">Mecânica</option>
+              <option value="Eletrônica">Eletrônica</option>
+              <option value="Hidráulica">Hidráulica</option>
+              <option value="Óptica / Laser">Óptica / Laser</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CRITÉRIOS DE COBRANÇA E DESLOCAÇÃO -->
+        <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
+            <h3 style="font-size: 15px; margin-top: 0; color: var(--deep-navy); margin-bottom: 15px;">Critérios de Cobrança e Deslocação</h3>
+            
+            <div class="form-group">
+                <label for="tem-hora">Cobrar Hora Trabalhada?</label>
+                <select id="tem-hora">
+                    <option value="sim">Sim</option>
+                    <option value="nao">Não</option>
+                </select>
+            </div>
+
+            <div id="bloco-turnos" style="background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor da Hora (R$):</label>
+                    <input type="number" step="0.01" id="valor-hora" value="200.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Manhã:</label>
+                        <input type="datetime-local" id="time-start-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Manhã:</label>
+                        <input type="datetime-local" id="time-end-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Tarde:</label>
+                        <input type="datetime-local" id="time-start-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Tarde (Encerramento):</label>
+                        <input type="datetime-local" id="time-end-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tem-km">Cobrar Km Rodado?</label>
+                <select id="tem-km">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+            <div id="bloco-km" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor por Km (R$):</label>
+                    <input type="number" step="0.01" id="valor-km" placeholder="Ex: 2.50" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                </div>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Km Ida:</label>
+                        <input type="number" step="0.1" id="km-ida" placeholder="Ex: 50" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1; min-width: 180px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Km Volta:</label>
+                        <input type="number" step="0.1" id="km-volta" placeholder="Ex: 50" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tem-combustivel">Adicionar Combustível?</label>
+                <select id="tem-combustivel">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+            <div id="bloco-combustivel" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
+                <div style="margin-bottom: 10px;">
+                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor por Litro (R$):</label>
+                    <input type="number" step="0.01" id="valor-litro" placeholder="Ex: 6.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Quantidade (Litros):</label>
+                    <input type="number" step="0.1" id="combustivel-litros" placeholder="Ex: 15.5" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 0;">
+                <label for="tem-despesas">Adicionar Outras Despesas (Pedágios, Alimentação, Hospedagem)?</label>
+                <select id="tem-despesas">
+                    <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
+                </select>
+            </div>
+
+            <div id="bloco-despesas" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-top: 10px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor Total de Outras Despesas (R$):</label>
+                <input type="number" step="0.01" id="valor-adicional" placeholder="Ex: 45.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
+            </div>
+        </div>
+
+        <!-- ANEXOS DINÂMICOS COM DESCRIÇÃO -->
+        <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
+            <label style="display: block; font-weight: bold; margin-bottom: 10px; color: var(--deep-navy);">Anexos / Fotos do Equipamento</label>
+            
+            <div id="container-anexos" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
+                <div class="anexo-row" style="display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;">
+                    <input type="text" placeholder="Descrição da foto (Ex: Antes da Intervenção)" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
+                    <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
+                </div>
+            </div>
+
+            <button type="button" id="btn-adicionar-anexo" class="btn" style="background: var(--tech-blue); padding: 6px 12px; font-size: 0.85rem;">+ Adicionar outro anexo</button>
+        </div>
+
+        <!-- Técnico Responsável -->
+        <div class="form-group">
+          <label for="technician-name">Técnico Responsável</label>
+          <input type="text" id="technician-name" required>
+        </div>
+
+        <!-- Descrição -->
+        <div class="form-group">
+          <label for="description">Descrição dos Trabalhos Realizados</label>
+          <textarea id="description" rows="4" required placeholder="Descreva detalhadamente o serviço executado..."></textarea>
+        </div>
+
+        <!-- Condição de Pagamento -->
+        <div class="form-group">
+          <label for="payment-terms">Condição de Pagamento (Dias)</label>
+          <input type="text" id="payment-terms" placeholder="Ex: 30" required>
+        </div>
+
+        <!-- Assinatura Técnico -->
+        <div class="form-group" style="margin-top: 15px;">
+          <label>Assinatura do Técnico Responsável</label>
+          <canvas id="tech-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
+          <button type="button" id="clear-tech" class="btn" style="margin-top: 5px; background: var(--slate-gray); padding: 5px 12px; font-size: 0.85rem;">Limpar Assinatura</button>
+        </div>
+
+        <!-- Assinatura Cliente -->
+        <div class="form-group" style="margin-top: 15px;">
+          <label>Assinatura do Cliente</label>
+          <canvas id="client-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
+          <button type="button" id="clear-client" class="btn" style="margin-top: 5px; background: var(--slate-gray); padding: 5px 12px; font-size: 0.85rem;">Limpar Assinatura</button>
+        </div>
+
+        <div style="margin-top: 25px;">
+          <button type="submit" id="submitBtn" class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 1.1rem;">Guardar Relatório de Serviço</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById('tem-hora').addEventListener('change', function() {
+        document.getElementById('bloco-turnos').style.display = this.value === 'sim' ? 'block' : 'none';
+    });
+    document.getElementById('tem-km').addEventListener('change', function() {
+        document.getElementById('bloco-km').style.display = this.value === 'sim' ? 'block' : 'none';
+    });
+    document.getElementById('tem-combustivel').addEventListener('change', function() {
+        document.getElementById('bloco-combustivel').style.display = this.value === 'sim' ? 'block' : 'none';
+    });
+    document.getElementById('tem-despesas').addEventListener('change', function() {
+        document.getElementById('bloco-despesas').style.display = this.value === 'sim' ? 'block' : 'none';
+    });
+
+    document.getElementById('btn-adicionar-anexo').addEventListener('click', function() {
+        const container = document.getElementById('container-anexos');
+        const novaLinha = document.createElement('div');
+        novaLinha.className = 'anexo-row';
+        novaLinha.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;';
+        novaLinha.innerHTML = `
+            <input type="text" placeholder="Descrição da foto" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
+            <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
+            <button type="button" onclick="this.parentElement.remove()" class="btn" style="background: #EF4444; padding: 6px 10px; font-size: 0.8rem;">X</button>
+        `;
+        container.appendChild(novaLinha);
+    });
+
+    const clientSelect = document.getElementById('reportClient');
+    const machineSelect = document.getElementById('machineSelect');
+    const equipmentInput = document.getElementById('equipment');
+    const brandInput = document.getElementById('brand');
+    const modelInput = document.getElementById('model');
+    const serialInput = document.getElementById('serial-number');
+    const reportNumberInput = document.getElementById('reportNumber');
+    const reportDateInput = document.getElementById('reportDate');
+    const techNameInput = document.getElementById('technician-name');
+
+    reportDateInput.valueAsDate = new Date();
+
+    let clients = [];
+    let machines = [];
+    let reports = [];
+
+    try {
+        clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
+        machines = JSON.parse(localStorage.getItem('rg_machines')) || [];
+        reports = JSON.parse(localStorage.getItem('rg_reports')) || [];
+    } catch (e) {
+        console.error("Erro ao carregar dados", e);
+    }
+
+    clients.forEach(c => {
+      const option = document.createElement('option');
+      option.value = c.name;
+      option.textContent = `${c.name} (${c.doc || c.cnpj || 'Sem doc'})`;
+      clientSelect.appendChild(option);
+    });
+
+    clientSelect.addEventListener('change', () => {
+      const selectedClient = clientSelect.value;
+      machineSelect.innerHTML = '<option value="">Selecione uma máquina cadastrada...</option>';
+      const filteredMachines = machines.filter(m => m.client === selectedClient);
+      filteredMachines.forEach((m, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${m.name} (${m.brand || 'Sem marca'} - ${m.serial || m.tag || 'Sem série'})`;
+        machineSelect.appendChild(option);
+      });
+    });
+
+    machineSelect.addEventListener('change', () => {
+      const idx = machineSelect.value;
+      if (idx !== "") {
+        const selectedClient = clientSelect.value;
+        const filteredMachines = machines.filter(m => m.client === selectedClient);
+        const machine = filteredMachines[idx];
+        if (machine) {
+          equipmentInput.value = machine.name || '';
+          brandInput.value = machine.brand || '';
+          modelInput.value = machine.model || '';
+          serialInput.value = machine.serial || machine.tag || '';
+        }
+      }
+    });
+
+    let config = { nextRs: '1001', tech: 'Otávio Barbosa' };
+    try {
+        const cfgData = localStorage.getItem('rg_config');
+        if (cfgData) config = JSON.parse(cfgData);
+    } catch (e) {}
+    techNameInput.value = config.tech || config.name || '';
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const editIndex = urlParams.get('edit');
+
+    if (editIndex !== null && reports[editIndex]) {
+      document.getElementById('pageTitle').textContent = "Editar Relatório de Serviço (RS)";
+      document.getElementById('submitBtn').textContent = "Atualizar Relatório";
+      const rep = reports[editIndex];
+      clientSelect.value = rep.client;
+      clientSelect.dispatchEvent(new Event('change'));
+
+      equipmentInput.value = rep.equipment || '';
+      brandInput.value = rep.brand || '';
+      modelInput.value = rep.model || '';
+      serialInput.value = rep.serialNumber || '';
+      reportNumberInput.value = rep.number;
+      reportDateInput.value = rep.date;
+      document.getElementById('service-nature').value = rep.serviceNature || 'Manutenção Corretiva';
+      document.getElementById('service-area').value = rep.serviceArea || 'Elétrica';
+      techNameInput.value = rep.technician || config.tech || '';
+      document.getElementById('description').value = rep.desc || '';
+      document.getElementById('payment-terms').value = rep.paymentTerms || '';
+
+      if (rep.temHora) {
+          document.getElementById('tem-hora').value = rep.temHora;
+          document.getElementById('bloco-turnos').style.display = rep.temHora === 'sim' ? 'block' : 'none';
+      }
+      document.getElementById('valor-hora').value = rep.valorHora || '200.00';
+      document.getElementById('time-start-manha').value = rep.startManha || '';
+      document.getElementById('time-end-manha').value = rep.endManha || '';
+      document.getElementById('time-start-tarde').value = rep.startTarde || '';
+      document.getElementById('time-end-tarde').value = rep.endTarde || '';
+
+      if (rep.temKm) {
+          document.getElementById('tem-km').value = rep.temKm;
+          document.getElementById('bloco-km').style.display = rep.temKm === 'sim' ? 'block' : 'none';
+      }
+      document.getElementById('valor-km').value = rep.valorKm || '';
+      document.getElementById('km-ida').value = rep.kmIda || '';
+      document.getElementById('km-volta').value = rep.kmVolta || '';
+
+      if (rep.temCombustivel) {
+          document.getElementById('tem-combustivel').value = rep.temCombustivel;
+          document.getElementById('bloco-combustivel').style.display = rep.temCombustivel === 'sim' ? 'block' : 'none';
+      }
+      document.getElementById('valor-litro').value = rep.valorLitro || '';
+      document.getElementById('combustivel-litros').value = rep.combustivelLitros || '';
+
+      if (rep.temDespesas) {
+          document.getElementById('tem-despesas').value = rep.temDespesas;
+          document.getElementById('bloco-despesas').style.display = rep.temDespesas === 'sim' ? 'block' : 'none';
+      }
+      document.getElementById('valor-adicional').value = rep.valorAdicional || '';
+
+      if (rep.anexos && rep.anexos.length > 0) {
+          const container = document.getElementById('container-anexos');
+          container.innerHTML = '';
+          rep.anexos.forEach(anexo => {
+              const novaLinha = document.createElement('div');
+              novaLinha.className = 'anexo-row';
+              novaLinha.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;';
+              novaLinha.innerHTML = `
+                  <input type="text" value="${anexo.titulo || ''}" placeholder="Descrição da foto" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
+                  <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
+                  <input type="hidden" class="anexo-existing" value="${anexo.imagem || ''}">
+                  <button type="button" onclick="this.parentElement.remove()" class="btn" style="background: #EF4444; padding: 6px 10px; font-size: 0.8rem;">X</button>
+              `;
+              container.appendChild(novaLinha);
+          });
+      }
+    } else {
+      reportNumberInput.value = `RS-${config.nextRs || '1001'}`;
+    }
+
+    const techCanvas = document.getElementById('tech-pad');
+    const clientCanvas = document.getElementById('client-pad');
+    const techPad = new SignaturePad(techCanvas);
+    const clientPad = new SignaturePad(clientCanvas);
+
+    function resizeCanvases() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      techCanvas.width = techCanvas.offsetWidth * ratio;
+      techCanvas.height = techCanvas.offsetHeight * ratio;
+      techCanvas.getContext("2d").scale(ratio, ratio);
+      techPad.clear();
+
+      clientCanvas.width = clientCanvas.offsetWidth * ratio;
+      clientCanvas.height = clientCanvas.offsetHeight * ratio;
+      clientCanvas.getContext("2d").scale(ratio, ratio);
+      clientPad.clear();
+    }
+    window.addEventListener("resize", resizeCanvases);
+    resizeCanvases();
+
+    if (editIndex !== null && reports[editIndex]) {
+      if (reports[editIndex].techSignature) techPad.fromDataURL(reports[editIndex].techSignature);
+      if (reports[editIndex].signature) clientPad.fromDataURL(reports[editIndex].signature);
+    }
+
+    document.getElementById('clear-tech').addEventListener('click', () => techPad.clear());
+    document.getElementById('clear-client').addEventListener('click', () => clientPad.clear());
+
+    function readFileAsDataURL(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
+        });
+    }
+
+    const reportForm = document.getElementById('reportForm');
+    reportForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (clientPad.isEmpty()) {
+        alert("Por favor, recolha a assinatura do cliente.");
+        return;
+      }
+
+      const anexoRows = document.querySelectorAll('.anexo-row');
+      const anexosList = [];
+
+      for (let row of anexoRows) {
+          const tituloInput = row.querySelector('.anexo-titulo').value;
+          const fileInput = row.querySelector('.anexo-ficheiro');
+          const existingInput = row.querySelector('.anexo-existing');
+          
+          let imagemBase64 = existingInput ? existingInput.value : '';
+
+          if (fileInput.files && fileInput.files[0]) {
+              try {
+                  imagemBase64 = await readFileAsDataURL(fileInput.files[0]);
+              } catch (err) {
+                  console.error("Erro ao ler ficheiro", err);
+              }
+          }
+
+          if (imagemBase64) {
+              anexosList.push({
+                  titulo: tituloInput || 'Foto do Equipamento',
+                  imagem: imagemBase64
+              });
+          }
+      }
+
+      const reportData = {
+        id: (editIndex !== null && reports[editIndex]) ? reports[editIndex].id : Date.now(),
+        client: clientSelect.value,
+        equipment: equipmentInput.value,
+        brand: brandInput.value,
+        model: modelInput.value,
+        serialNumber: serialInput.value,
+        number: reportNumberInput.value,
+        date: reportDateInput.value,
+        serviceNature: document.getElementById('service-nature').value,
+        serviceArea: document.getElementById('service-area').value,
+        technician: techNameInput.value,
+        desc: document.getElementById('description').value,
+        paymentTerms: document.getElementById('payment-terms').value,
+        
+        temHora: document.getElementById('tem-hora').value,
+        valorHora: document.getElementById('valor-hora').value,
+        startManha: document.getElementById('time-start-manha').value,
+        endManha: document.getElementById('time-end-manha').value,
+        startTarde: document.getElementById('time-start-tarde').value,
+        endTarde: document.getElementById('time-end-tarde').value,
+        
+        temKm: document.getElementById('tem-km').value,
+        valorKm: document.getElementById('valor-km').value,
+        kmIda: document.getElementById('km-ida').value,
+        kmVolta: document.getElementById('km-volta').value,
+
+        temCombustivel: document.getElementById('tem-combustivel').value,
+        valorLitro: document.getElementById('valor-litro').value,
+        combustivelLitros: document.getElementById('combustivel-litros').value,
+
+        temDespesas: document.getElementById('tem-despesas').value,
+        valorAdicional: document.getElementById('valor-adicional').value,
+
+        anexos: anexosList,
+
+        techSignature: techPad.isEmpty() ? '' : techPad.toDataURL(),
+        signature: clientPad.toDataURL()
+      };
+
+      let currentReports = [];
+      try {
+          currentReports = JSON.parse(localStorage.getItem('rg_reports')) || [];
+      } catch (err) {
+          currentReports = [];
+      }
+
+      if (editIndex !== null && currentReports[editIndex]) {
+        currentReports[editIndex] = reportData;
+      } else {
+        currentReports.push(reportData);
+        let nextNum = parseInt(config.nextRs || '1001') + 1;
+        config.nextRs = nextNum.toString();
+        localStorage.setItem('rg_config', JSON.stringify(config));
+      }
+
+      // Proteção contra armazenamento cheio (QuotaExceededError)
+      try {
+          localStorage.setItem('rg_reports', JSON.stringify(currentReports));
+      } catch (err) {
+          alert('Erro ao guardar: O espaço de armazenamento do navegador ficou cheio devido ao tamanho ou quantidade das fotos anexadas. Tente usar imagens menores.');
+          return;
+      }
+
+      alert('Relatório de Serviço guardado com sucesso!');
+      window.location.href = 'historico.html';
+    });
+  </script>
+
+</body>
+</html>

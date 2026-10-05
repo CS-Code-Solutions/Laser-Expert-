@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" href="img/ico1.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Expert - Configurações</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0B132B">
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Laser Expert">
+      </a>
+      <nav>
+        <ul>
+          <li><a href="index.html">Clientes</a></li>
+          <li><a href="maquinas.html">Máquinas</a></li>
+          <li><a href="novo-relatorio.html">Novo Relatório</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="configuracao.html" class="active">Configuração</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="card" style="border-top-color: var(--success);">
+      <h2>Configurações & Administração</h2>
+      
+      <div style="background: var(--ice-white); padding: 12px; border-radius: 6px; margin-bottom: 20px;">
+        <label style="margin-bottom: 0; font-weight: bold;">Status do Sistema:</label>
+        <span style="color: var(--success); font-weight: 600;">🟢 Conectado (Armazenamento Local Ativo)</span>
+      </div>
+
+      <form id="configForm">
+        <h3 style="margin-bottom: 15px; color: var(--deep-navy);">🏢 Dados da Empresa & Numeração de RS</h3>
+        
+        <div class="form-group">
+          <label for="configName">Razão Social / Nome:</label>
+          <input type="text" id="configName" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configTech">Técnico / Responsável Padrão:</label>
+          <input type="text" id="configTech" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configDoc">CNPJ:</label>
+          <input type="text" id="configDoc" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configNextRs" style="color: var(--tech-blue);">Próximo Número de Sequência de RS (Inicial / Automático):</label>
+          <input type="number" id="configNextRs" required style="background: #EFF6FF; border-color: var(--tech-blue);">
+        </div>
+
+        <div class="form-group">
+          <label for="configPix">Chave PIX:</label>
+          <input type="text" id="configPix">
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+          <div style="flex: 2; min-width: 180px;" class="form-group">
+            <label for="configBank">Banco:</label>
+            <input type="text" id="configBank">
+          </div>
+          <div style="flex: 1; min-width: 110px;" class="form-group">
+            <label for="configAgency">Agência:</label>
+            <input type="text" id="configAgency">
+          </div>
+          <div style="flex: 1; min-width: 110px;" class="form-group">
+            <label for="configAccount">Conta:</label>
+            <input type="text" id="configAccount">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="configEmail">E-mail de Contato:</label>
+          <input type="email" id="configEmail" required>
+        </div>
+
+        <div class="form-group">
+          <label for="configContact">Telefone / WhatsApp:</label>
+          <input type="text" id="configContact" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+          <label for="configLocation">Endereço / Localização:</label>
+          <input type="text" id="configLocation" required>
+        </div>
+
+        <button type="submit" class="btn" style="background: var(--success); width: 100%; padding: 12px; font-size: 1.05rem;">Salvar Dados da Empresa</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    const configForm = id => document.getElementById(id);
+    
+    const defaultConfig = {
+        name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA',
+        tech: 'Otávio Barbosa',
+        doc: '48.959.536/0001-65',
+        nextRs: '1001',
+        pix: 'comercial@laserexpertbr.com.br',
+        bank: '',
+        agency: '',
+        account: '',
+        email: 'comercial@laserexpertbr.com.br',
+        contact: '+55 51 98144-1865',
+        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+    };
+
+    let savedConfig = defaultConfig;
+    try {
+        const localData = localStorage.getItem('rg_config');
+        if (localData) {
+            savedConfig = JSON.parse(localData);
+        }
+    } catch (e) {
+        console.error("Erro ao carregar configurações", e);
+    }
+
+    document.getElementById('configName').value = savedConfig.name || defaultConfig.name;
+    document.getElementById('configTech').value = savedConfig.tech || defaultConfig.tech;
+    document.getElementById('configDoc').value = savedConfig.doc || defaultConfig.doc;
+    document.getElementById('configNextRs').value = savedConfig.nextRs || defaultConfig.nextRs;
+    document.getElementById('configPix').value = savedConfig.pix || defaultConfig.pix;
+    document.getElementById('configBank').value = savedConfig.bank || '';
+    document.getElementById('configAgency').value = savedConfig.agency || '';
+    document.getElementById('configAccount').value = savedConfig.account || '';
+    document.getElementById('configEmail').value = savedConfig.email || defaultConfig.email;
+    document.getElementById('configContact').value = savedConfig.contact || defaultConfig.contact;
+    document.getElementById('configLocation').value = savedConfig.location || defaultConfig.location;
+
+    document.getElementById('configForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const configData = {
+            name: document.getElementById('configName').value,
+            tech: document.getElementById('configTech').value,
+            doc: document.getElementById('configDoc').value,
+            nextRs: document.getElementById('configNextRs').value,
+            pix: document.getElementById('configPix').value,
+            bank: document.getElementById('configBank').value,
+            agency: document.getElementById('configAgency').value,
+            account: document.getElementById('configAccount').value,
+            email: document.getElementById('configEmail').value,
+            contact: document.getElementById('configContact').value,
+            location: document.getElementById('configLocation').value
+        };
+
+        localStorage.setItem('rg_config', JSON.stringify(configData));
+        alert('Configurações salvas com sucesso!');
+    });
+  </script>
+</body>
+</html>
