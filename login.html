@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <link rel="icon" href="img/ico1.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Expert - Login</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0B132B">
+</head>
+<body style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--deep-navy);">
+
+  <div class="card" style="width: 100%; max-width: 400px; margin: 20px; text-align: center; border-top: 4px solid var(--electric-cyan);">
+    <div style="margin-bottom: 20px;">
+      <img src="logo.png" alt="Laser Expert" style="height: 50px; width: auto; object-fit: contain; margin-bottom: 10px;">
+      <h2 style="color: var(--deep-navy); font-size: 1.3rem;">Painel de Acesso</h2>
+    </div>
+
+    <form id="loginForm">
+      <div class="form-group" style="text-align: left;">
+        <label for="userEmail">Usuário / E-mail</label>
+        <input type="text" id="userEmail" required placeholder="Digite seu e-mail ou usuário">
+      </div>
+      <div class="form-group" style="text-align: left;">
+        <label for="userPassword">Palavra-passe / PIN</label>
+        <input type="password" id="userPassword" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px;">Entrar no Sistema</button>
+    </form>
+  </div>
+
+  <footer style="background: transparent; color: var(--slate-gray); width: 100%; position: absolute; bottom: 10px; text-align: center;">
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Desenvolvido por <strong>CS Code</strong></p>
+  </footer>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      localStorage.setItem('rg_logged', 'true');
+      window.location.href = 'index.html';
+    });
+  </script>
+
+</body>
+</html>
