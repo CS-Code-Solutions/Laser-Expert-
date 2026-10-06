@@ -18,67 +18,19 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
-      header, footer, .no-print, .action-toolbar { display: none !important; }
+      header, footer, .no-print { display: none !important; }
       body { background: white; color: black; padding: 0; margin: 0; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
-      .page-break { page-break-before: always; }
     }
 
-    #budgetPreviewModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 43, 0.85);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-      overflow-y: auto;
-      padding: 15px;
-    }
-    .modal-content-wrapper {
-      background: white;
-      width: 100%;
-      max-width: 800px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      max-height: 92vh;
-      overflow: hidden;
-    }
-    .action-toolbar {
-      background: var(--deep-navy);
-      color: white;
-      padding: 12px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      border-bottom: 2px solid var(--electric-cyan);
-    }
-    .toolbar-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .report-scroll-container {
-      padding: 20px;
-      overflow-y: auto;
-      background: #FFF;
-      flex: 1;
-      position: relative;
-    }
-
-    /* Marca d'água sucinta e elegante */
     .watermark {
-      position: fixed;
-      top: 50%;
+      position: absolute;
+      top: 45%;
       left: 50%;
       transform: translate(-50%, -50%) rotate(-30deg);
       font-size: 55px;
       font-weight: bold;
-      color: rgba(0, 245, 212, 0.05);
+      color: rgba(0, 245, 212, 0.04);
       z-index: 0;
       pointer-events: none;
       text-align: center;
@@ -86,15 +38,15 @@
       text-transform: uppercase;
     }
 
-    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; box-sizing: border-box; }
-    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
-    .print-header img { height: 50px; width: auto; }
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 11px; position: relative; z-index: 1; box-sizing: border-box; }
+    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 8px; margin-bottom: 12px; }
+    .print-header img { height: 45px; width: auto; }
     .print-header-info { text-align: right; }
-    .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
-    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
-    .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .print-body p { margin: 3px 0; }
+    .print-header-info h1 { font-size: 14px; color: #0B132B; margin: 0; font-weight: bold; }
+    .section-box { border: 1px solid #CBD5E1; padding: 10px; margin-bottom: 10px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
+    .section-title { font-weight: bold; font-size: 12px; color: #0B132B; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .print-body p { margin: 2px 0; }
   </style>
 </head>
 <body>
@@ -190,32 +142,11 @@
     </section>
   </main>
 
-  <!-- Modal de Pré-visualização e Partilha -->
-  <div id="budgetPreviewModal">
-    <div class="modal-content-wrapper">
-      <div class="action-toolbar">
-        <div>
-          <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ Pronto</span>
-        </div>
-        <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
-          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
-        </div>
-      </div>
-      <div class="report-scroll-container">
-        <div id="budgetRenderArea"></div>
-      </div>
-    </div>
-  </div>
-
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
-    let activeBudgetData = {};
     document.getElementById('orcDate').valueAsDate = new Date();
 
     async function loadClientsSelect() {
@@ -258,7 +189,7 @@
               <td>${b.equipment || '-'}</td>
               <td>R$ ${Number(b.total || 0).toFixed(2)}</td>
               <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openBudgetPreview(${i})">Gerar Orçamento</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="gerarECompartilharOrcamento(${i})">Gerar Orçamento</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editBudget(${i})">Editar</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteBudget(${i})">Excluir</button>
               </td>
@@ -366,7 +297,19 @@
       }
     };
 
-    window.openBudgetPreview = async function(index) {
+    function waitForImages(container) {
+      const imgs = container.querySelectorAll('img');
+      const promises = Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      return Promise.all(promises);
+    }
+
+    window.gerarECompartilharOrcamento = async function(index) {
       let budgets = await DataSync.load('rg_orcamentos') || [];
       const b = budgets[index];
       if (!b) { alert("Orçamento não encontrado."); return; }
@@ -389,10 +332,13 @@
       let clients = await DataSync.load('rg_clients') || [];
       const clientObj = clients.find(c => c.name === b.client) || {};
 
-      activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
-
-      const htmlContent = `
-        <div class="print-body">
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '794px';
+      tempContainer.innerHTML = `
+        <div class="print-body" style="background: white; padding: 20px;">
           <div class="watermark">LASER EXPERT</div>
 
           <div class="print-header">
@@ -431,42 +377,31 @@
 
           <div class="section-box">
             <div class="section-title">Escopo dos Serviços / Peças</div>
-            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
+            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
           </div>
 
           <div class="section-box">
             <div class="section-title">Condições Comerciais</div>
-            <p style="white-space: pre-wrap; margin-bottom: 8px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
-            <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
+            <p style="white-space: pre-wrap; margin-bottom: 6px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
+            <div style="background: #E2E8F0; padding: 8px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 13px; color: #0B132B;">
               VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
             </div>
           </div>
 
-          <div style="margin-top: 25px; text-align: right; page-break-inside: avoid;">
+          <div style="margin-top: 20px; text-align: right; page-break-inside: avoid;">
             <p>________________________________________</p>
             <p><strong>Otávio Barbosa</strong></p>
-            <p style="font-size: 11px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
+            <p style="font-size: 10px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
           </div>
         </div>
       `;
+      document.body.appendChild(tempContainer);
 
-      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
-      document.getElementById('budgetRenderArea').innerHTML = htmlContent;
-      document.getElementById('budgetPreviewModal').style.display = 'flex';
-    };
+      await waitForImages(tempContainer);
 
-    window.closeModal = function() {
-      document.getElementById('budgetPreviewModal').style.display = 'none';
-    };
-
-    window.sharePDF = async function() {
-      const element = document.getElementById('budgetRenderArea');
-      if (!element) return;
-
-      const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
+      const filename = `Orcamento_${b.number}_${b.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       const opt = {
-        margin:       10,
+        margin:       5,
         filename:     filename,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, logging: false },
@@ -474,21 +409,23 @@
       };
 
       try {
-        const worker = html2pdf().from(element).set(opt);
+        const worker = html2pdf().from(tempContainer).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Orçamento ${activeBudgetData.number}`,
-            text: `Segue o Orçamento ${activeBudgetData.number} (${activeBudgetData.client}). Valor total: R$ ${activeBudgetData.total}`,
+            title: `Orçamento ${b.number}`,
+            text: `Segue o Orçamento ${b.number} (${b.client}). Valor total: R$ ${Number(b.total || 0).toFixed(2)}`,
             files: [pdfFile]
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
+          alert("O PDF foi descarregado diretamente.");
         }
       } catch (err) {
+        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
