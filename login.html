@@ -1,22 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
-
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore (Base de Dados) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<!-- Firebase Authentication (Autenticação) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Ficheiro de Inicialização -->
-<script src="firebase-init.js"></script>
+  <!-- Firebase SDKs e Inicialização (Sem duplicações) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
 
   <link rel="icon" href="img/ico1.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -25,7 +15,6 @@
   <title>Laser Expert - Login</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* Estilo específico para o fundo tecnológico e cartão centralizado */
     body.login-page {
       margin: 0;
       padding: 0;
@@ -33,7 +22,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      /* Fundo com gradiente industrial e efeito de linhas técnicas subtis */
       background: linear-gradient(135deg, #0B132B 0%, #1C2541 50%, #3A506B 100%);
       background-image: 
         radial-gradient(rgba(0, 245, 212, 0.1) 1px, transparent 1px),
@@ -117,6 +105,18 @@
       background: #00ddbe;
     }
 
+    .login-error {
+      color: #EF4444;
+      font-size: 0.85rem;
+      margin-top: 12px;
+      display: none;
+      font-weight: bold;
+      background: #FEF2F2;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #FCA5A5;
+    }
+
     .login-footer {
       margin-top: 25px;
       font-size: 0.75rem;
@@ -138,7 +138,7 @@
       <form id="loginForm">
         <div class="form-group">
           <label for="email">E-mail de Acesso</label>
-          <input type="email" id="email" placeholder="ex: comercial@laserexpert.com.br" required>
+          <input type="email" id="email" placeholder="ex: comercial@laserexpertbr.com.br" required>
         </div>
 
         <div class="form-group">
@@ -146,7 +146,9 @@
           <input type="password" id="senha" placeholder="••••••••" required>
         </div>
 
-        <button type="submit" class="btn-login">ENTRAR</button>
+        <div id="loginError" class="login-error"></div>
+
+        <button type="submit" id="submitBtn" class="btn-login">ENTRAR</button>
       </form>
 
       <div class="login-footer">
@@ -156,11 +158,49 @@
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', (e) => {
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      // Registo de sessão ativa no LocalStorage
-      localStorage.setItem('rg_logged', 'true');
-      window.location.href = 'index.html';
+      const emailInput = document.getElementById('email').value.trim().toLowerCase();
+      const passwordInput = document.getElementById('senha').value.trim();
+      const errorBox = document.getElementById('loginError');
+      const submitBtn = document.getElementById('submitBtn');
+
+      errorBox.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'A VERIFICAR...';
+
+      try {
+        // Carrega utilizadores autorizados da nuvem
+        let users = await DataSync.load('rg_users');
+        
+        // Se a base estiver vazia, cria o admin padrão de segurança automaticamente
+        if (!users || !Array.isArray(users) || users.length === 0) {
+          users = [
+            { email: 'comercial@laserexpertbr.com.br', password: 'admin' }
+          ];
+          await DataSync.save('rg_users', users);
+        }
+
+        // Valida as credenciais na nuvem
+        const foundUser = users.find(u => u.email.toLowerCase() === emailInput && u.password === passwordInput);
+
+        if (foundUser) {
+          localStorage.setItem('rg_logged', 'true');
+          localStorage.setItem('rg_user_email', foundUser.email);
+          window.location.href = 'index.html';
+        } else {
+          errorBox.textContent = 'Acesso negado: E-mail ou palavra-passe incorretos.';
+          errorBox.style.display = 'block';
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'ENTRAR';
+        }
+      } catch (err) {
+        console.error("Erro no login:", err);
+        errorBox.textContent = 'Erro de ligação ao Firebase. Verifique a rede.';
+        errorBox.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'ENTRAR';
+      }
     });
   </script>
 
