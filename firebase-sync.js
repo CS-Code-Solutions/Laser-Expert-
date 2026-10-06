@@ -1,6 +1,5 @@
-// Módulo avançado de Sincronização em Tempo Real (Firestore + LocalStorage)
+// Módulo de Sincronização com Diagnóstico de Erros
 const DataSync = {
-  // Salvar dados (atualiza localmente e envia para o Firestore)
   async save(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
     try {
@@ -9,14 +8,16 @@ const DataSync = {
           content: data,
           updatedAt: new Date()
         });
-        console.log(`[Firebase Realtime] Dados salvos e sincronizados: ${key}`);
+        console.log(`[Firebase] Sincronizado com sucesso: ${key}`);
+      } else {
+        console.warn("[Firebase] Objeto 'db' não definido.");
       }
     } catch (err) {
-      console.warn(`[Firebase] Modo offline - dados salvos apenas localmente para ${key}:`, err);
+      console.error(`[Firebase] Erro ao salvar ${key}:`, err);
+      alert(`Erro de Sincronização na Nuvem (${key}): ` + err.message);
     }
   },
 
-  // Carregar dados (busca da nuvem ou fallback para o cache local)
   async load(key) {
     try {
       if (typeof db !== 'undefined') {
@@ -28,14 +29,13 @@ const DataSync = {
         }
       }
     } catch (err) {
-      console.warn(`[Firebase] Erro ao carregar ${key}, a usar cache local:`, err);
+      console.warn(`[Firebase] A carregar cache local para ${key} devido a erro:`, err);
     }
 
     const local = localStorage.getItem(key);
     return local ? JSON.parse(local) : null;
   },
 
-  // Ouvir alterações em tempo real na nuvem
   listen(key, callback) {
     try {
       if (typeof db !== 'undefined') {
@@ -45,10 +45,12 @@ const DataSync = {
             localStorage.setItem(key, JSON.stringify(remoteData));
             if (callback) callback(remoteData);
           }
+        }, (error) => {
+          console.error(`[Firebase] Erro no listener de ${key}:`, error);
         });
       }
     } catch (err) {
-      console.warn(`[Firebase] Erro ao ativar escuta em tempo real para ${key}:`, err);
+      console.warn(`[Firebase] Erro ao ativar escuta para ${key}:`, err);
     }
   }
 };
