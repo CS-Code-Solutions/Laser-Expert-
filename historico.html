@@ -19,12 +19,58 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
-      header, footer, .no-print { display: none !important; }
+      header, footer, .no-print, .action-toolbar { display: none !important; }
       body { background: white; color: black; padding: 0; margin: 0; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
-      .page-break { page-break-before: always; }
     }
 
+    #reportPreviewModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 43, 0.85);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    .modal-content-wrapper {
+      background: white;
+      width: 100%;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      max-height: 92vh;
+      overflow: hidden;
+    }
+    .action-toolbar {
+      background: var(--deep-navy);
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 2px solid var(--electric-cyan);
+    }
+    .toolbar-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .report-scroll-container {
+      padding: 20px;
+      overflow-y: auto;
+      background: #FFF;
+      flex: 1;
+      position: relative;
+    }
+
+    /* Marca d'água elegante em cada página */
     .watermark {
       position: absolute;
       top: 45%;
@@ -99,11 +145,31 @@
     </section>
   </main>
 
+  <div id="reportPreviewModal">
+    <div class="modal-content-wrapper">
+      <div class="action-toolbar">
+        <div>
+          <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
+        </div>
+        <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
+          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+        </div>
+      </div>
+      <div class="report-scroll-container">
+        <div id="reportRenderArea"></div>
+      </div>
+    </div>
+  </div>
+
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
+    let activeReportData = {};
+
     async function renderHistory() {
       const historyTableBody = document.getElementById('historyTableBody');
       if (!historyTableBody) return;
@@ -130,7 +196,7 @@
               <td>${rep.equipment || '-'}</td>
               <td>${rep.serviceNature || rep.type || '-'}</td>
               <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="gerarECompartilharRS(${i})">Gerar RS</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openReportPreview(${i})">Gerar RS</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editReport(${i})">Editar</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteReport(${i})">Excluir</button>
               </td>
@@ -193,19 +259,7 @@
         return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
     }
 
-    function waitForImages(container) {
-      const imgs = container.querySelectorAll('img');
-      const promises = Array.from(imgs).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      });
-      return Promise.all(promises);
-    }
-
-    window.gerarECompartilharRS = async function(index) {
+    window.openReportPreview = async function(index) {
       let reports = await DataSync.load('rg_reports') || [];
       const rep = reports[index];
       if (!rep) { alert("Relatório não encontrado."); return; }
@@ -258,6 +312,7 @@
       }
 
       const valorTotalStr = valorTotal.toFixed(2);
+      activeReportData = { number: rep.number, client: rep.client, total: valorTotalStr };
 
       let pixPayload = "";
       let qrCodeUrl = "";
@@ -311,13 +366,8 @@
         `;
       }
 
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.top = '0';
-      tempContainer.style.width = '794px';
-      tempContainer.innerHTML = `
-        <div class="print-body" style="background: white; padding: 20px;">
+      const fullReportHtml = `
+        <div class="print-body">
           <div class="watermark">LASER EXPERT</div>
 
           <div class="print-header">
@@ -401,11 +451,22 @@
           ${anexosHtml}
         </div>
       `;
-      document.body.appendChild(tempContainer);
 
-      await waitForImages(tempContainer);
+      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
+      document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
+      document.getElementById('reportPreviewModal').style.display = 'flex';
+    };
 
-      const filename = `RS_${rep.number}_${rep.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    window.closeModal = function() {
+      document.getElementById('reportPreviewModal').style.display = 'none';
+    };
+
+    window.sharePDF = async function() {
+      const element = document.getElementById('reportRenderArea');
+      if (!element) return;
+
+      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      
       const opt = {
         margin:       5,
         filename:     filename,
@@ -415,15 +476,14 @@
       };
 
       try {
-        const worker = html2pdf().from(tempContainer).set(opt);
+        const worker = html2pdf().from(element).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Relatório de Serviço ${rep.number}`,
-            text: `Segue o Relatório de Serviço ${rep.number} (${rep.client}). Valor total: R$ ${valorTotalStr}`,
+            title: `Relatório de Serviço ${activeReportData.number}`,
+            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
             files: [pdfFile]
           });
         } else {
@@ -431,7 +491,6 @@
           alert("O PDF foi descarregado diretamente.");
         }
       } catch (err) {
-        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
