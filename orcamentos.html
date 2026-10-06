@@ -176,17 +176,18 @@
                 <input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Despesas com deslocamento, alimentação e hotel já incluso no orçamento.</span>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
-                <input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
-                <span>Deixar um cilindro de gás laser cheio para testes.</span>
-              </label>
-              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
-                <input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
-                <span>Não estão inclusos, óleos, peças e espelhos.</span>
-              </label>
             </div>
-            <label for="orcTerms" style="margin-top: 8px; display: block;"><strong>Texto / Condições Comerciais Personalizadas:</strong></label>
-            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; margin-top: 4px;"></textarea>
+
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" id="checkNotIncluded" checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;" onchange="atualizarTermosCompletos()">
+                <span style="font-weight: bold;">Não estão inclusos:</span>
+              </label>
+              <textarea id="orcNotIncludedText" rows="2" class="form-control" placeholder="Ex: óleos, peças e espelhos." style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; font-size: 11px;" oninput="atualizarTermosCompletos()">óleos, peças e espelhos.</textarea>
+            </div>
+
+            <label for="orcTerms" style="margin-top: 8px; display: block;"><strong>Texto Final / Resumo das Condições Comerciais:</strong></label>
+            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; margin-top: 4px; background: #F1F5F9;" readonly></textarea>
           </div>
         </div>
 
@@ -244,20 +245,27 @@
     let activeBudgetData = {};
     document.getElementById('orcDate').valueAsDate = new Date();
 
-    function atualizarTermosPorCheckboxes() {
+    function atualizarTermosCompletos() {
       const checkboxes = document.querySelectorAll('.term-check');
       let selecionados = [];
       checkboxes.forEach(cb => {
         if (cb.checked) selecionados.push(cb.value);
       });
+
+      const checkNotInc = document.getElementById('checkNotIncluded');
+      const textNotInc = document.getElementById('orcNotIncludedText');
+      if (checkNotInc && checkNotInc.checked && textNotInc && textNotInc.value.trim() !== '') {
+        selecionados.push(`Não estão inclusos: ${textNotInc.value.trim()}`);
+      }
+
       document.getElementById('orcTerms').value = selecionados.join(' ');
     }
 
     document.querySelectorAll('.term-check').forEach(cb => {
-      cb.addEventListener('change', atualizarTermosPorCheckboxes);
+      cb.addEventListener('change', atualizarTermosCompletos);
     });
 
-    atualizarTermosPorCheckboxes();
+    atualizarTermosCompletos();
 
     async function loadClientsSelect() {
       const select = document.getElementById('orcClient');
@@ -367,7 +375,9 @@
       document.getElementById('orcDate').valueAsDate = new Date();
       
       document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
-      atualizarTermosPorCheckboxes();
+      document.getElementById('checkNotIncluded').checked = true;
+      document.getElementById('orcNotIncludedText').value = "óleos, peças e espelhos.";
+      atualizarTermosCompletos();
 
       try {
         let budgets = await DataSync.load('rg_orcamentos') || [];
@@ -395,6 +405,16 @@
         document.querySelectorAll('.term-check').forEach(cb => {
           cb.checked = currentTerms.includes(cb.value);
         });
+
+        if (currentTerms.includes("Não estão inclusos:")) {
+          document.getElementById('checkNotIncluded').checked = true;
+          const parts = currentTerms.split("Não estão inclusos:");
+          if (parts[1]) {
+            document.getElementById('orcNotIncludedText').value = parts[1].trim();
+          }
+        } else {
+          document.getElementById('checkNotIncluded').checked = false;
+        }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (e) {
