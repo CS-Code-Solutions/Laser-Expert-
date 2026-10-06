@@ -115,6 +115,7 @@
       border-radius: 4px;
       border: 1px solid #FCA5A5;
       text-align: left;
+      word-break: break-all;
     }
 
     .login-footer {
@@ -170,7 +171,6 @@
       submitBtn.textContent = 'A AUTENTICAR...';
 
       try {
-        // Autenticação oficial via Firebase Authentication (igual ao projeto Ísis)
         await firebase.auth().signInWithEmailAndPassword(email, password);
 
         localStorage.setItem('rg_logged', 'true');
@@ -178,14 +178,8 @@
         window.location.href = 'index.html';
       } catch (err) {
         console.error("Erro no login Firebase Auth:", err);
-        let msg = 'E-mail ou palavra-passe incorretos.';
-        if (err.code === 'auth/invalid-email') {
-          msg = 'Formato de e-mail inválido.';
-        } else if (err.code === 'auth/too-many-requests') {
-          msg = 'Muitas tentativas falhadas. Tente novamente mais tarde.';
-        }
-        
-        errorBox.textContent = msg;
+        // Exibe o código de erro exato do Firebase para diagnóstico imediato
+        errorBox.textContent = `Erro Firebase [${err.code}]: ${err.message}`;
         errorBox.style.display = 'block';
         submitBtn.disabled = false;
         submitBtn.textContent = 'ENTRAR';
