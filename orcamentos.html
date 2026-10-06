@@ -228,6 +228,7 @@
           <span id="loadingStatusOrc" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #00F5D4; color: #0B132B; font-weight: bold; padding: 6px 12px; font-size: 0.85rem;" onclick="compartilharPDFOrcamento()">📤 Partilhar PDF</button>
           <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖ Fechar</button>
         </div>
       </div>
@@ -255,7 +256,6 @@
       const checkNotInc = document.getElementById('checkNotIncluded');
       const textNotInc = document.getElementById('orcNotIncludedText');
       if (checkNotInc && checkNotInc.checked && textNotInc) {
-        // Se estiver vazio, usa o placeholder como valor padrão de exemplo
         const val = textNotInc.value.trim() !== '' ? textNotInc.value.trim() : textNotInc.placeholder;
         selecionados.push(`Não estão inclusos: ${val}`);
       }
@@ -374,7 +374,7 @@
       
       document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
       document.getElementById('checkNotIncluded').checked = true;
-      document.getElementById('orcNotIncludedText').value = ""; // Começa limpo, mostrando apenas o placeholder
+      document.getElementById('orcNotIncludedText').value = "";
       atualizarTermosCompletos();
 
       try {
@@ -512,6 +512,54 @@
 
       document.getElementById('loadingStatusOrc').textContent = '✅ Pronto';
       document.getElementById('budgetPreviewModal').style.display = 'flex';
+
+      // Aciona automaticamente a partilha logo após abrir o modal
+      setTimeout(() => {
+        compartilharPDFOrcamento();
+      }, 400);
+    };
+
+    window.compartilharPDFOrcamento = async function() {
+      const element = document.getElementById('budgetRenderArea');
+      const statusSpan = document.getElementById('loadingStatusOrc');
+      statusSpan.textContent = '⏳ A gerar PDF...';
+
+      const opt = {
+        margin:       10,
+        filename:     `Orcamento_${activeBudgetData.number || '0001'}_${activeBudgetData.client || 'Cliente'}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      try {
+        const pdfBlob = await html2pdf().from(element).set(opt).outputPdf('blob');
+        const fileName = `Orcamento_${activeBudgetData.number || '0001'}.pdf`;
+        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          statusSpan.textContent = '✅ Pronto a partilhar!';
+          await navigator.share({
+            files: [file],
+            title: `Orçamento ${activeBudgetData.number}`,
+            text: `Segue em anexo o orçamento ${activeBudgetData.number} para ${activeBudgetData.client}.`
+          });
+        } else {
+          const blobUrl = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = fileName;
+          link.click();
+          statusSpan.textContent = '✅ PDF descarregado';
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error("Erro ao partilhar PDF:", err);
+          statusSpan.textContent = '❌ Erro';
+        } else {
+          statusSpan.textContent = '✅ Cancelado';
+        }
+      }
     };
 
     window.closeModal = function() {
