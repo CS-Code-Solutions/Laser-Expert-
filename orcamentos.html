@@ -201,7 +201,7 @@
           <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
         </div>
       </div>
-      <div class="report-scroll-container">
+      <div class="report-scroll-container" id="budgetScrollContainer">
         <div id="budgetRenderArea"></div>
       </div>
     </div>
@@ -466,6 +466,16 @@
       const element = document.getElementById('budgetRenderArea');
       if (!element) return;
 
+      const scrollContainer = document.getElementById('budgetScrollContainer');
+      const originalOverflow = scrollContainer ? scrollContainer.style.overflow : '';
+      const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
+      
+      // Remove temporariamente o limite de scroll para o html2pdf capturar o documento completo
+      if (scrollContainer) {
+        scrollContainer.style.overflow = 'visible';
+        scrollContainer.style.maxHeight = 'none';
+      }
+
       const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       
       const opt = {
@@ -479,6 +489,13 @@
       try {
         const worker = html2pdf().from(element).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
+        
+        // Restaura o scroll do modal
+        if (scrollContainer) {
+          scrollContainer.style.overflow = originalOverflow;
+          scrollContainer.style.maxHeight = originalMaxHeight;
+        }
+
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
@@ -491,6 +508,10 @@
           worker.save();
         }
       } catch (err) {
+        if (scrollContainer) {
+          scrollContainer.style.overflow = originalOverflow;
+          scrollContainer.style.maxHeight = originalMaxHeight;
+        }
         console.error(err);
       }
     };
