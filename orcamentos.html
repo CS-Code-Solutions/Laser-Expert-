@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
+  <!-- Firebase SDKs e Sincronização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
 
   <link rel="icon" href="img/ico1.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -185,7 +184,7 @@
             </tr>
           </thead>
           <tbody id="budgetTableBody">
-            <tr><td colspan="6" style="text-align: center; color: #64748B;">A carregar orçamentos...</td></tr>
+            <tr><td colspan="6" style="text-align: center; color: #64748B;">A carregar orçamentos da nuvem...</td></tr>
           </tbody>
         </table>
       </div>
@@ -218,27 +217,30 @@
 
   <script>
     let activeBudgetData = {};
-
-    // Definir data atual por defeito no input
     document.getElementById('orcDate').valueAsDate = new Date();
 
-    function loadClientsSelect() {
+    async function loadClientsSelect() {
       const select = document.getElementById('orcClient');
-      select.innerHTML = '<option value="">Selecione um cliente...</option>';
+      if (!select) return;
       try {
-        const clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
+        const clients = await DataSync.load('rg_clients') || [];
+        select.innerHTML = '<option value="">Selecione um cliente...</option>';
         clients.forEach(c => {
           select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
         });
-      } catch (e) {}
+      } catch (e) {
+        console.error("Erro ao carregar clientes", e);
+      }
     }
 
-    function renderBudgets() {
+    async function renderBudgets() {
       const tbody = document.getElementById('budgetTableBody');
       if (!tbody) return;
 
       try {
-        let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        if (!Array.isArray(budgets)) budgets = [];
+
         tbody.innerHTML = '';
         if (budgets.length === 0) {
           tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748B;">Nenhum orçamento registado.</td></tr>';
@@ -246,7 +248,6 @@
         }
 
         let htmlRows = '';
-        // Ordem decrescente (último no topo)
         for (let i = budgets.length - 1; i >= 0; i--) {
           const b = budgets[i];
           if (!b) continue;
@@ -271,18 +272,27 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", () => {
-      loadClientsSelect();
-      renderBudgets();
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadClientsSelect();
+      await renderBudgets();
       
-      // Gerar número automático sequencial se for novo
-      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-      if (budgets.length > 0) {
-        document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
-      }
+      try {
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        if (Array.isArray(budgets) && budgets.length > 0) {
+          document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
+        }
+      } catch (e) {}
+
+      // Sincronização em tempo real
+      DataSync.listen('rg_orcamentos', () => {
+        renderBudgets();
+      });
+      DataSync.listen('rg_clients', () => {
+        loadClientsSelect();
+      });
     });
 
-    document.getElementById('budgetForm').addEventListener('submit', (e) => {
+    document.getElementById('budgetForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const editIndex = document.getElementById('editIndex').value;
       
@@ -296,142 +306,161 @@
         terms: document.getElementById('orcTerms').value
       };
 
-      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-      if (editIndex !== '') {
-        budgets[editIndex] = newBudget;
-      } else {
-        budgets.push(newBudget);
-      }
+      try {
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        if (!Array.isArray(budgets)) budgets = [];
 
-      localStorage.setItem('rg_orcamentos', JSON.stringify(budgets));
-      resetForm();
-      renderBudgets();
+        if (editIndex !== '') {
+          budgets[editIndex] = newBudget;
+        } else {
+          budgets.push(newBudget);
+        }
+
+        await DataSync.save('rg_orcamentos', budgets);
+        resetForm();
+        renderBudgets();
+        alert('Orçamento salvo e sincronizado com sucesso!');
+      } catch (err) {
+        alert('Erro ao salvar orçamento: ' + err.message);
+      }
     });
 
-    window.resetForm = function() {
+    window.resetForm = async function() {
       document.getElementById('budgetForm').reset();
       document.getElementById('editIndex').value = '';
       document.getElementById('formTitle').textContent = 'Novo Orçamento';
       document.getElementById('orcDate').valueAsDate = new Date();
-      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-      document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
+      try {
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
+      } catch (e) {}
     };
 
-    window.editBudget = function(index) {
-      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-      const b = budgets[index];
-      if (!b) return;
+    window.editBudget = async function(index) {
+      try {
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        const b = budgets[index];
+        if (!b) return;
 
-      document.getElementById('editIndex').value = index;
-      document.getElementById('formTitle').textContent = `Editar Orçamento - ${b.number}`;
-      document.getElementById('orcNumber').value = b.number;
-      document.getElementById('orcDate').value = b.date;
-      document.getElementById('orcClient').value = b.client;
-      document.getElementById('orcEquipment').value = b.equipment;
-      document.getElementById('orcDesc').value = b.desc;
-      document.getElementById('orcTotal').value = b.total;
-      document.getElementById('orcTerms').value = b.terms;
-      
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-
-    window.deleteBudget = function(index) {
-      if (confirm('Deseja realmente excluir este orçamento?')) {
-        let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-        budgets.splice(index, 1);
-        localStorage.setItem('rg_orcamentos', JSON.stringify(budgets));
-        renderBudgets();
+        document.getElementById('editIndex').value = index;
+        document.getElementById('formTitle').textContent = `Editar Orçamento - ${b.number}`;
+        document.getElementById('orcNumber').value = b.number;
+        document.getElementById('orcDate').value = b.date;
+        document.getElementById('orcClient').value = b.client;
+        document.getElementById('orcEquipment').value = b.equipment;
+        document.getElementById('orcDesc').value = b.desc;
+        document.getElementById('orcTotal').value = b.total;
+        document.getElementById('orcTerms').value = b.terms;
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (e) {
+        alert('Erro ao carregar orçamento para edição.');
       }
     };
 
-    window.openBudgetPreview = function(index) {
-      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
-      const b = budgets[index];
-      if (!b) { alert("Orçamento não encontrado."); return; }
+    window.deleteBudget = async function(index) {
+      if (confirm('Deseja realmente excluir este orçamento?')) {
+        try {
+          let budgets = await DataSync.load('rg_orcamentos') || [];
+          budgets.splice(index, 1);
+          await DataSync.save('rg_orcamentos', budgets);
+          renderBudgets();
+        } catch (e) {
+          alert('Erro ao excluir orçamento.');
+        }
+      }
+    };
 
-      const defaultConfig = { 
-        name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
-        tech: 'Otávio Barbosa',
-        doc: '48.959.536/0001-65',
-        email: 'comercial@laserexpertbr.com.br',
-        contact: '+55 51 98144-1865',
-        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
-      };
-
-      let config = { ...defaultConfig };
+    window.openBudgetPreview = async function(index) {
       try {
-        const savedCfg = JSON.parse(localStorage.getItem('rg_config'));
-        if (savedCfg) config = { ...defaultConfig, ...savedCfg };
-      } catch (e) {}
+        let budgets = await DataSync.load('rg_orcamentos') || [];
+        const b = budgets[index];
+        if (!b) { alert("Orçamento não encontrado."); return; }
 
-      let clients = [];
-      try { clients = JSON.parse(localStorage.getItem('rg_clients')) || []; } catch (e) {}
-      const clientObj = clients.find(c => c.name === b.client) || {};
+        const defaultConfig = { 
+          name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
+          tech: 'Otávio Barbosa',
+          doc: '48.959.536/0001-65',
+          email: 'comercial@laserexpertbr.com.br',
+          contact: '+55 51 98144-1865',
+          location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+        };
 
-      activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
+        let config = { ...defaultConfig };
+        try {
+          const savedCfg = await DataSync.load('rg_config');
+          if (savedCfg) config = { ...defaultConfig, ...savedCfg };
+        } catch (e) {}
 
-      const htmlContent = `
-        <div class="print-body">
-          <!-- MARCA D'ÁGUA NO PDF -->
-          <div class="watermark">LASER EXPERT</div>
+        let clients = await DataSync.load('rg_clients') || [];
+        const clientObj = clients.find(c => c.name === b.client) || {};
 
-          <div class="print-header">
-            <img src="logo.png" alt="Logo">
-            <div class="print-header-info">
-              <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
-              <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
+        activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
+
+        const htmlContent = `
+          <div class="print-body">
+            <div class="watermark">LASER EXPERT</div>
+
+            <div class="print-header">
+              <img src="logo.png" alt="Logo">
+              <div class="print-header-info">
+                <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
+                <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
+              </div>
+            </div>
+
+            <div class="section-box">
+              <div class="section-title">Dados da Empresa</div>
+              <div class="grid-2">
+                <p><strong>Razão Social:</strong> ${config.name}</p>
+                <p><strong>CNPJ:</strong> ${config.doc}</p>
+                <p><strong>E-mail:</strong> ${config.email || '-'}</p>
+                <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
+                <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
+              </div>
+            </div>
+
+            <div class="section-box">
+              <div class="section-title">Dados do Cliente</div>
+              <div class="grid-2">
+                <p><strong>Nome / Razão Social:</strong> ${b.client}</p>
+                <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
+                <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
+                <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
+              </div>
+            </div>
+
+            <div class="section-box">
+              <div class="section-title">Equipamento</div>
+              <p><strong>Equipamento / Máquina:</strong> ${b.equipment || '-'}</p>
+            </div>
+
+            <div class="section-box">
+              <div class="section-title">Descrição Comercial e Escopo</div>
+              <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
+            </div>
+
+            <div class="section-box">
+              <div class="section-title">Condições e Valor</div>
+              <p style="margin-bottom: 8px;">• <strong>Condição de Pagamento / Validade:</strong> ${b.terms || '-'}</p>
+              <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
+                VALOR TOTAL DO ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
+              </div>
             </div>
           </div>
+        `;
 
-          <div class="section-box">
-            <div class="section-title">Dados da Empresa</div>
-            <div class="grid-2">
-              <p><strong>Razão Social:</strong> ${config.name}</p>
-              <p><strong>CNPJ:</strong> ${config.doc}</p>
-              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
-              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
-              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
-            </div>
-          </div>
+        document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
+        document.getElementById('budgetRenderArea').innerHTML = htmlContent;
+        document.getElementById('loadingStatus').style.display = 'inline';
+        document.getElementById('budgetPreviewModal').style.display = 'flex';
 
-          <div class="section-box">
-            <div class="section-title">Dados do Cliente</div>
-            <div class="grid-2">
-              <p><strong>Nome / Razão Social:</strong> ${b.client}</p>
-              <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
-              <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
-              <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
-            </div>
-          </div>
-
-          <div class="section-box">
-            <div class="section-title">Equipamento</div>
-            <p><strong>Equipamento / Máquina:</strong> ${b.equipment || '-'}</p>
-          </div>
-
-          <div class="section-box">
-            <div class="section-title">Descrição Comercial e Escopo</div>
-            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
-          </div>
-
-          <div class="section-box">
-            <div class="section-title">Condições e Valor</div>
-            <p style="margin-bottom: 8px;">• <strong>Condição de Pagamento / Validade:</strong> ${b.terms || '-'}</p>
-            <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
-              VALOR TOTAL DO ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
-            </div>
-          </div>
-        </div>
-      `;
-
-      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
-      document.getElementById('budgetRenderArea').innerHTML = htmlContent;
-      document.getElementById('loadingStatus').style.display = 'inline';
-      document.getElementById('budgetPreviewModal').style.display = 'flex';
-
-      setTimeout(() => {
-        document.getElementById('loadingStatus').style.display = 'none';
-      }, 1200);
+        setTimeout(() => {
+          document.getElementById('loadingStatus').style.display = 'none';
+        }, 1200);
+      } catch (e) {
+        alert("Erro ao abrir pré-visualização do orçamento.");
+      }
     };
 
     window.closeModal = function() {
