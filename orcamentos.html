@@ -156,8 +156,16 @@
             <input type="number" step="0.01" id="orcTotal" placeholder="0.00" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
           <div>
-            <label for="orcTerms"><strong>Condições Comerciais:</strong></label>
-            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;">Pagamento a combinar. Impostos inclusos. Despesas com deslocamento, alimentação e hotel já incluso no orçamento. Deixar um cilindro de gás laser cheio para testes. Não estão inclusos, óleos, peças e espelhos.</textarea>
+            <label><strong>Condições Comerciais (Opções Rápidas):</strong></label>
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 8px; border-radius: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;">
+              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Pagamento a combinar." checked> Pagamento a combinar.</label>
+              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Impostos inclusos." checked> Impostos inclusos.</label>
+              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked> Despesas com deslocamento, alimentação e hotel já incluso no orçamento.</label>
+              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked> Deixar um cilindro de gás laser cheio para testes.</label>
+              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked> Não estão inclusos, óleos, peças e espelhos.</label>
+            </div>
+            <label for="orcTerms"><strong>Texto / Condições Comerciais Personalizadas:</strong></label>
+            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
           </div>
         </div>
 
@@ -198,7 +206,7 @@
           <span id="loadingStatusOrc" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️️ Fechar</button>
         </div>
       </div>
       <div class="report-scroll-container" id="budgetScrollContainer">
@@ -214,6 +222,22 @@
   <script>
     let activeBudgetData = {};
     document.getElementById('orcDate').valueAsDate = new Date();
+
+    function atualizarTermosPorCheckboxes() {
+      const checkboxes = document.querySelectorAll('.term-check');
+      let selecionados = [];
+      checkboxes.forEach(cb => {
+        if (cb.checked) selecionados.push(cb.value);
+      });
+      document.getElementById('orcTerms').value = selecionados.join(' ');
+    }
+
+    document.querySelectorAll('.term-check').forEach(cb => {
+      cb.addEventListener('change', atualizarTermosPorCheckboxes);
+    });
+
+    // Inicializa o campo ao carregar
+    atualizarTermosPorCheckboxes();
 
     async function loadClientsSelect() {
       const select = document.getElementById('orcClient');
@@ -321,7 +345,11 @@
       document.getElementById('editIndex').value = '';
       document.getElementById('formTitle').textContent = 'Novo Orçamento';
       document.getElementById('orcDate').valueAsDate = new Date();
-      document.getElementById('orcTerms').value = "Pagamento a combinar. Impostos inclusos. Despesas com deslocamento, alimentação e hotel já incluso no orçamento. Deixar um cilindro de gás laser cheio para testes. Não estão inclusos, óleos, peças e espelhos.";
+      
+      // Reseta checkboxes e texto padrão
+      document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
+      atualizarTermosPorCheckboxes();
+
       try {
         let budgets = await DataSync.load('rg_orcamentos') || [];
         document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
@@ -343,6 +371,12 @@
         document.getElementById('orcDesc').value = b.desc;
         document.getElementById('orcTotal').value = b.total;
         document.getElementById('orcTerms').value = b.terms;
+
+        // Tenta marcar as checkboxes correspondentes se o texto contiver as frases
+        const currentTerms = b.terms || '';
+        document.querySelectorAll('.term-check').forEach(cb => {
+          cb.checked = currentTerms.includes(cb.value);
+        });
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (e) {
@@ -451,7 +485,6 @@
       document.getElementById('budgetRenderArea').innerHTML = htmlContent;
       document.getElementById('budgetPreviewModal').style.display = 'flex';
 
-      // Aguarda 1800ms para renderizar todos os blocos na íntegra antes de gerar o PDF e abrir o menu
       setTimeout(async () => {
         const loadingStatus = document.getElementById('loadingStatusOrc');
         if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
