@@ -1,29 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
-
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore (Base de Dados) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<!-- Firebase Authentication (Autenticação) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Ficheiro de Inicialização -->
-<script src="firebase-init.js"></script>
-
   <link rel="icon" href="img/ico1.png" type="image/png">
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laser Expert - Histórico de RS</title>
   <link rel="stylesheet" href="style.css">
+  
+  <!-- Firebase SDKs e Sincronização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
+
   <!-- html2pdf CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
@@ -100,16 +91,16 @@
     <div class="nav-container">
       <a href="index.html" class="logo">
         <img src="logo.png" alt="Logo">
-     </a>
+      </a>
       <nav>
         <ul>
           <li><a href="index.html">Clientes</a></li>
           <li><a href="maquinas.html">Máquinas</a></li>
           <li><a href="novo-relatorio.html">Novo Relatório</a></li>
-          <li><a href="historico.html">Histórico RS</a></li>
-<li><a href="orcamentos.html">Orçamentos</a></li>
-          <li><a href="configuracao.html" class="active">Configuração</a></li>
-            <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
+          <li><a href="historico.html" class="active">Histórico RS</a></li>
+          <li><a href="orcamentos.html">Orçamentos</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
+          <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
         </ul>
       </nav>
     </div>
@@ -131,7 +122,7 @@
             </tr>
           </thead>
           <tbody id="historyTableBody">
-            <tr><td colspan="6" style="text-align: center; color: #64748B;">A carregar histórico...</td></tr>
+            <tr><td colspan="6" style="text-align: center; color: #64748B;">A carregar histórico da nuvem...</td></tr>
           </tbody>
         </table>
       </div>
@@ -148,7 +139,7 @@
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
           <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️️ Fechar</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
         </div>
       </div>
       <div class="report-scroll-container">
@@ -164,17 +155,13 @@
   <script>
     let activeReportData = {};
 
-    function renderHistory() {
+    async function renderHistory() {
       const historyTableBody = document.getElementById('historyTableBody');
       if (!historyTableBody) return;
 
       try {
-        let reports = [];
-        const rawData = localStorage.getItem('rg_reports');
-        if (rawData) {
-          const parsed = JSON.parse(rawData);
-          if (Array.isArray(parsed)) reports = parsed;
-        }
+        let reports = await DataSync.load('rg_reports') || [];
+        if (!Array.isArray(reports)) reports = [];
 
         historyTableBody.innerHTML = '';
         if (reports.length === 0) {
@@ -209,14 +196,20 @@
       }
     }
 
-    document.addEventListener("DOMContentLoaded", renderHistory);
+    document.addEventListener("DOMContentLoaded", async () => {
+      await renderHistory();
+      // Escuta alterações em tempo real via Firestore
+      DataSync.listen('rg_reports', () => {
+        renderHistory();
+      });
+    });
 
-    window.deleteReport = function(index) {
+    window.deleteReport = async function(index) {
       if(confirm('Deseja realmente excluir este relatório?')) {
         try {
-          let reports = JSON.parse(localStorage.getItem('rg_reports')) || [];
+          let reports = await DataSync.load('rg_reports') || [];
           reports.splice(index, 1);
-          localStorage.setItem('rg_reports', JSON.stringify(reports));
+          await DataSync.save('rg_reports', reports);
           renderHistory();
         } catch (e) { alert('Erro ao excluir relatório.'); }
       }
@@ -255,10 +248,8 @@
         return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
     }
 
-    window.openReportPreview = function(index) {
-      let reports = [];
-      try { reports = JSON.parse(localStorage.getItem('rg_reports')) || []; } catch (e) {}
-
+    window.openReportPreview = async function(index) {
+      let reports = await DataSync.load('rg_reports') || [];
       const rep = reports[index];
       if (!rep) { alert("Relatório não encontrado."); return; }
       
@@ -275,12 +266,11 @@
 
       let config = { ...defaultConfig };
       try {
-        const savedCfg = JSON.parse(localStorage.getItem('rg_config'));
+        const savedCfg = await DataSync.load('rg_config');
         if (savedCfg) config = { ...defaultConfig, ...savedCfg };
       } catch (e) {}
 
-      let clients = [];
-      try { clients = JSON.parse(localStorage.getItem('rg_clients')) || []; } catch (e) {}
+      let clients = await DataSync.load('rg_clients') || [];
       const clientObj = clients.find(c => c.name === rep.client) || {};
 
       let valorTotal = 0;
