@@ -109,6 +109,30 @@
           <button type="submit" class="btn" style="background-color: var(--electric-cyan); color: var(--deep-navy); font-weight: bold; padding: 10px 20px;">Guardar Configurações</button>
         </div>
       </form>
+
+      <hr style="border: 0; border-top: 1px solid #CBD5E1; margin: 35px 0;">
+
+      <!-- SECÇÃO DE BACKUP E RESTAURAÇÃO -->
+      <div>
+        <h3 style="color: var(--deep-navy); margin-bottom: 10px; font-size: 1.2rem;">💾 Backup e Segurança de Dados</h3>
+        <p style="font-size: 0.9rem; color: #64748B; margin-bottom: 20px;">
+          Faça o download de uma cópia de segurança de todos os seus dados (clientes, máquinas, relatórios, orçamentos e configurações) ou restaure os dados a partir de um ficheiro JSON anterior.
+        </p>
+
+        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+          <button type="button" onclick="fazerBackup()" class="btn" style="background-color: var(--tech-blue); color: white; padding: 10px 20px; flex: 1; min-width: 200px; font-weight: bold;">
+            📥 Descarregar Backup (JSON)
+          </button>
+          
+          <div style="flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px; background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 8px 12px; border-radius: 6px;">
+            <label for="fileRestore" style="cursor: pointer; font-size: 0.9rem; font-weight: bold; color: var(--deep-navy); width: 100%;">
+              📤 Restaurar Backup:
+              <input type="file" id="fileRestore" accept=".json" onchange="restaurarBackup(event)" style="display: none;">
+              <span id="restoreLabel" style="display: block; font-weight: normal; font-size: 0.8rem; color: #64748B; margin-top: 2px;">Clique para selecionar ficheiro...</span>
+            </label>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -203,6 +227,63 @@
         }
       });
     });
+
+    // Funções de Backup e Restauração de Dados
+    window.fazerBackup = async function() {
+      try {
+        const keys = ['rg_config', 'rg_clients', 'rg_maquinas', 'rg_relatorios', 'rg_orcamentos'];
+        const backupData = {};
+
+        for (const key of keys) {
+          backupData[key] = await DataSync.load(key) || [];
+        }
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        const dataAtual = new Date().toISOString().split('T')[0];
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `laser_expert_backup_${dataAtual}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        
+        alert('Backup gerado e descarregado com sucesso!');
+      } catch (err) {
+        alert('Erro ao gerar backup: ' + err.message);
+      }
+    };
+
+    window.restaurarBackup = async function(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!confirm('Atenção: A restauração irá substituir os dados atuais pelas informações do ficheiro de backup. Deseja continuar?')) {
+        event.target.value = '';
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = async function(e) {
+        try {
+          const content = e.target.result;
+          const backupData = JSON.parse(content);
+
+          const keys = ['rg_config', 'rg_clients', 'rg_maquinas', 'rg_relatorios', 'rg_orcamentos'];
+          for (const key of keys) {
+            if (backupData[key] !== undefined) {
+              await DataSync.save(key, backupData[key]);
+            }
+          }
+
+          alert('Dados restaurados e sincronizados com sucesso!');
+          location.reload();
+        } catch (err) {
+          alert('Erro ao processar o ficheiro de backup. Certifique-se de que é um JSON válido.');
+          console.error(err);
+        }
+      };
+      reader.readAsText(file);
+    };
   </script>
 
 </body>
