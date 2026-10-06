@@ -19,67 +19,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
-      header, footer, .no-print, .action-toolbar { display: none !important; }
+      header, footer, .no-print { display: none !important; }
       body { background: white; color: black; padding: 0; margin: 0; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
       .page-break { page-break-before: always; }
     }
 
-    #reportPreviewModal {
-      display: none;
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 19, 43, 0.85);
-      z-index: 2000;
-      justify-content: center;
-      align-items: center;
-      overflow-y: auto;
-      padding: 15px;
-    }
-    .modal-content-wrapper {
-      background: white;
-      width: 100%;
-      max-width: 800px;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-      display: flex;
-      flex-direction: column;
-      max-height: 92vh;
-      overflow: hidden;
-    }
-    .action-toolbar {
-      background: var(--deep-navy);
-      color: white;
-      padding: 12px 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
-      border-bottom: 2px solid var(--electric-cyan);
-    }
-    .toolbar-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .report-scroll-container {
-      padding: 20px;
-      overflow-y: auto;
-      background: #FFF;
-      flex: 1;
-      position: relative;
-    }
-
-    /* Marca d'água sucinta e elegante */
     .watermark {
-      position: fixed;
-      top: 50%;
+      position: absolute;
+      top: 45%;
       left: 50%;
       transform: translate(-50%, -50%) rotate(-30deg);
       font-size: 55px;
       font-weight: bold;
-      color: rgba(0, 245, 212, 0.05);
+      color: rgba(0, 245, 212, 0.04);
       z-index: 0;
       pointer-events: none;
       text-align: center;
@@ -87,18 +40,18 @@
       text-transform: uppercase;
     }
 
-    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; box-sizing: border-box; }
-    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
-    .print-header img { height: 50px; width: auto; }
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 11px; position: relative; z-index: 1; box-sizing: border-box; }
+    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 8px; margin-bottom: 12px; }
+    .print-header img { height: 45px; width: auto; }
     .print-header-info { text-align: right; }
-    .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
-    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
-    .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .print-body p { margin: 3px 0; }
-    .signature-area { margin-top: 25px; display: flex; justify-content: space-between; align-items: flex-end; page-break-inside: avoid; }
+    .print-header-info h1 { font-size: 14px; color: #0B132B; margin: 0; font-weight: bold; }
+    .section-box { border: 1px solid #CBD5E1; padding: 10px; margin-bottom: 10px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
+    .section-title { font-weight: bold; font-size: 12px; color: #0B132B; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .print-body p { margin: 2px 0; }
+    .signature-area { margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; page-break-inside: avoid; }
     .signature-box { text-align: center; width: 45%; }
-    .signature-box img { max-width: 200px; height: 55px; object-fit: contain; display: block; margin: 0 auto; border-bottom: 1px solid #000; }
+    .signature-box img { max-width: 180px; height: 50px; object-fit: contain; display: block; margin: 0 auto; border-bottom: 1px solid #000; }
     .page-break { page-break-before: always; }
   </style>
 </head>
@@ -146,32 +99,11 @@
     </section>
   </main>
 
-  <div id="reportPreviewModal">
-    <div class="modal-content-wrapper">
-      <div class="action-toolbar">
-        <div>
-          <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ Pronto</span>
-        </div>
-        <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
-          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
-        </div>
-      </div>
-      <div class="report-scroll-container">
-        <div id="reportRenderArea"></div>
-      </div>
-    </div>
-  </div>
-
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
-    let activeReportData = {};
-
     async function renderHistory() {
       const historyTableBody = document.getElementById('historyTableBody');
       if (!historyTableBody) return;
@@ -198,7 +130,7 @@
               <td>${rep.equipment || '-'}</td>
               <td>${rep.serviceNature || rep.type || '-'}</td>
               <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openReportPreview(${i})">Gerar RS</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="gerarECompartilharRS(${i})">Gerar RS</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editReport(${i})">Editar</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteReport(${i})">Excluir</button>
               </td>
@@ -261,7 +193,19 @@
         return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
     }
 
-    window.openReportPreview = async function(index) {
+    function waitForImages(container) {
+      const imgs = container.querySelectorAll('img');
+      const promises = Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      return Promise.all(promises);
+    }
+
+    window.gerarECompartilharRS = async function(index) {
       let reports = await DataSync.load('rg_reports') || [];
       const rep = reports[index];
       if (!rep) { alert("Relatório não encontrado."); return; }
@@ -314,7 +258,6 @@
       }
 
       const valorTotalStr = valorTotal.toFixed(2);
-      activeReportData = { number: rep.number, client: rep.client, total: valorTotalStr };
 
       let pixPayload = "";
       let qrCodeUrl = "";
@@ -330,14 +273,14 @@
       const pixSectionHtml = `
         <div class="section-box" style="display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
           <div style="flex: 1; padding-right: 12px;">
-            <div class="section-title" style="border:none; margin-bottom:6px; padding:0;">Dados Bancários & Pagamento PIX</div>
-            <p style="margin-bottom: 4px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
-            <p style="margin-bottom: 6px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix || '-'} | <strong>Favorecido:</strong> ${config.name || '-'}</p>
-            <p style="font-size: 10px; color: #555; margin-top: 4px;">Escaneie o QR Code ao lado para efetuar o pagamento do valor total.</p>
+            <div class="section-title" style="border:none; margin-bottom:4px; padding:0;">Dados Bancários & Pagamento PIX</div>
+            <p style="margin-bottom: 2px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
+            <p style="margin-bottom: 4px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix || '-'} | <strong>Favorecido:</strong> ${config.name || '-'}</p>
+            <p style="font-size: 9px; color: #555;">Escaneie o QR Code ao lado para efetuar o pagamento.</p>
           </div>
-          <div style="text-align: center; background: #FFF; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; min-width: 120px;">
-            <img src="${qrCodeUrl}" alt="QR Code PIX" style="width: 110px; height: 110px; display: block; margin: 0 auto;">
-            <span style="font-size: 9px; font-weight: bold; display: block; margin-top: 2px;">PIX Copia e Cola</span>
+          <div style="text-align: center; background: #FFF; padding: 4px; border: 1px solid #CBD5E1; border-radius: 4px; min-width: 100px;">
+            <img src="${qrCodeUrl}" alt="QR Code PIX" style="width: 95px; height: 95px; display: block; margin: 0 auto;">
+            <span style="font-size: 8px; font-weight: bold; display: block; margin-top: 2px;">PIX Copia e Cola</span>
           </div>
         </div>`;
 
@@ -346,9 +289,10 @@
         let itemsHtml = '';
         rep.anexos.forEach(anexo => {
           itemsHtml += `
-            <div class="section-box" style="text-align: center; page-break-inside: avoid;">
+            <div class="section-box" style="text-align: center; page-break-inside: avoid; margin-top: 15px;">
+              <div class="watermark">LASER EXPERT</div>
               <div class="section-title" style="text-align: left;">${anexo.titulo || 'Foto do Equipamento'}</div>
-              <img src="${anexo.imagem}" alt="${anexo.titulo || ''}" style="max-width: 100%; max-height: 400px; height: auto; object-fit: contain; border-radius: 4px; border: 1px solid #CBD5E1; display: block; margin: 0 auto;">
+              <img src="${anexo.imagem}" alt="${anexo.titulo || ''}" style="max-width: 100%; max-height: 350px; height: auto; object-fit: contain; border-radius: 4px; border: 1px solid #CBD5E1; display: block; margin: 0 auto;">
             </div>
           `;
         });
@@ -361,14 +305,19 @@
               <p><strong>RS Nº:</strong> ${rep.number} | <strong>Cliente:</strong> ${rep.client}</p>
             </div>
           </div>
-          <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 15px;">
+          <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
             ${itemsHtml}
           </div>
         `;
       }
 
-      const fullReportHtml = `
-        <div class="print-body">
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.width = '794px';
+      tempContainer.innerHTML = `
+        <div class="print-body" style="background: white; padding: 20px;">
           <div class="watermark">LASER EXPERT</div>
 
           <div class="print-header">
@@ -412,24 +361,24 @@
 
           <div class="section-box">
             <div class="section-title">Registro do Serviço Realizado</div>
-            <div class="grid-2" style="margin-bottom: 6px;">
+            <div class="grid-2" style="margin-bottom: 4px;">
               <p><strong>Tipo de Manutenção:</strong> ${rep.serviceNature || '-'}</p>
               <p><strong>Área de Serviço:</strong> ${rep.serviceArea || '-'}</p>
             </div>
             <p><strong>Descrição Detalhada:</strong></p>
-            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${rep.desc || '-'}</p>
+            <p style="white-space: pre-wrap; margin-top: 2px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${rep.desc || '-'}</p>
           </div>
 
           <div class="section-box">
             <div class="section-title">Critérios de Cobrança e Valor Total</div>
-            <div style="font-size: 11px; margin-bottom: 8px;">
+            <div style="font-size: 10px; margin-bottom: 6px;">
               <p>• <strong>Serviço / Horas:</strong> ${textoHoras}</p>
               ${kmHtml}
               ${combustivelHtml}
               ${despesasHtml}
               <p>• <strong>Condição de Pagamento:</strong> ${rep.paymentTerms || '-'} dias</p>
             </div>
-            <div style="background: #E2E8F0; padding: 8px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 13px; color: #0B132B;">
+            <div style="background: #E2E8F0; padding: 6px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 12px; color: #0B132B;">
               TOTAL DO SERVIÇO: R$ ${valorTotalStr}
             </div>
           </div>
@@ -438,12 +387,12 @@
 
           <div class="signature-area">
             <div class="signature-box">
-              ${rep.techSignature ? `<img src="${rep.techSignature}" alt="Assinatura Técnico">` : '<p style="height: 55px;"></p>'}
+              ${rep.techSignature ? `<img src="${rep.techSignature}" alt="Assinatura Técnico">` : '<p style="height: 50px;"></p>'}
               <p>________________________________________</p>
               <p><strong>Técnico Responsável:</strong> ${rep.technician || config.tech || 'Otávio Barbosa'}</p>
             </div>
             <div class="signature-box">
-              ${rep.signature ? `<img src="${rep.signature}" alt="Assinatura Cliente">` : '<p style="height: 55px;"></p>'}
+              ${rep.signature ? `<img src="${rep.signature}" alt="Assinatura Cliente">` : '<p style="height: 50px;"></p>'}
               <p>________________________________________</p>
               <p><strong>Assinatura do Cliente</strong></p>
             </div>
@@ -452,24 +401,13 @@
           ${anexosHtml}
         </div>
       `;
+      document.body.appendChild(tempContainer);
 
-      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
-      document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
-      document.getElementById('reportPreviewModal').style.display = 'flex';
-    };
+      await waitForImages(tempContainer);
 
-    window.closeModal = function() {
-      document.getElementById('reportPreviewModal').style.display = 'none';
-    };
-
-    window.sharePDF = async function() {
-      const element = document.getElementById('reportRenderArea');
-      if (!element) return;
-
-      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
+      const filename = `RS_${rep.number}_${rep.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       const opt = {
-        margin:       10,
+        margin:       5,
         filename:     filename,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true, logging: false },
@@ -477,21 +415,23 @@
       };
 
       try {
-        const worker = html2pdf().from(element).set(opt);
+        const worker = html2pdf().from(tempContainer).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Relatório de Serviço ${activeReportData.number}`,
-            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
+            title: `Relatório de Serviço ${rep.number}`,
+            text: `Segue o Relatório de Serviço ${rep.number} (${rep.client}). Valor total: R$ ${valorTotalStr}`,
             files: [pdfFile]
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
+          alert("O PDF foi descarregado diretamente.");
         }
       } catch (err) {
+        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
