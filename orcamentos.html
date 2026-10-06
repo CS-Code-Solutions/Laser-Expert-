@@ -70,7 +70,7 @@
       position: relative;
     }
 
-    /* Marca d'água sucinta e elegante repetida por página */
+    /* Marca d'água sucinta e elegante */
     .watermark {
       position: fixed;
       top: 50%;
@@ -86,7 +86,7 @@
       text-transform: uppercase;
     }
 
-    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; }
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; box-sizing: border-box; }
     .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
     .print-header img { height: 50px; width: auto; }
     .print-header-info { text-align: right; }
@@ -119,7 +119,6 @@
   </header>
 
   <main>
-    <!-- Secção de Criação / Edição de Orçamento -->
     <section class="card no-print" style="margin-bottom: 20px;">
       <h2 id="formTitle">Novo Orçamento</h2>
       <form id="budgetForm">
@@ -169,7 +168,6 @@
       </form>
     </section>
 
-    <!-- Histórico de Orçamentos -->
     <section class="card">
       <h2>Histórico de Orçamentos</h2>
       <div class="table-responsive">
@@ -191,26 +189,6 @@
       </div>
     </section>
   </main>
-
-  <!-- Modal de Pré-visualização com Marca d'Água -->
-  <div id="budgetPreviewModal">
-    <div class="modal-content-wrapper">
-      <div class="action-toolbar">
-        <div>
-          <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar...</span>
-        </div>
-        <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
-          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
-        </div>
-      </div>
-      <div class="report-scroll-container">
-        <div id="budgetRenderArea"></div>
-      </div>
-    </div>
-  </div>
 
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
@@ -368,114 +346,104 @@
       }
     };
 
+    // Função auxiliar para aguardar o carregamento completo das imagens antes de gerar o PDF
+    function waitForImages(container) {
+      const imgs = container.querySelectorAll('img');
+      const promises = Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      return Promise.all(promises);
+    }
+
     window.openBudgetPreview = async function(index) {
+      let budgets = await DataSync.load('rg_orcamentos') || [];
+      const b = budgets[index];
+      if (!b) { alert("Orçamento não encontrado."); return; }
+
+      const defaultConfig = { 
+        name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
+        tech: 'Otávio Barbosa',
+        doc: '48.959.536/0001-65',
+        email: 'comercial@laserexpertbr.com.br',
+        contact: '+55 51 98144-1865',
+        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+      };
+
+      let config = { ...defaultConfig };
       try {
-        let budgets = await DataSync.load('rg_orcamentos') || [];
-        const b = budgets[index];
-        if (!b) { alert("Orçamento não encontrado."); return; }
+        const savedCfg = await DataSync.load('rg_config');
+        if (savedCfg) config = { ...defaultConfig, ...savedCfg };
+      } catch (e) {}
 
-        const defaultConfig = { 
-          name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
-          tech: 'Otávio Barbosa',
-          doc: '48.959.536/0001-65',
-          email: 'comercial@laserexpertbr.com.br',
-          contact: '+55 51 98144-1865',
-          location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
-        };
+      let clients = await DataSync.load('rg_clients') || [];
+      const clientObj = clients.find(c => c.name === b.client) || {};
 
-        let config = { ...defaultConfig };
-        try {
-          const savedCfg = await DataSync.load('rg_config');
-          if (savedCfg) config = { ...defaultConfig, ...savedCfg };
-        } catch (e) {}
+      activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
 
-        let clients = await DataSync.load('rg_clients') || [];
-        const clientObj = clients.find(c => c.name === b.client) || {};
-
-        activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
-
-        const htmlContent = `
-          <div class="print-body">
-            <div class="watermark">LASER EXPERT</div>
-
-            <div class="print-header">
-              <img src="logo.png" alt="Logo">
-              <div class="print-header-info">
-                <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
-                <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
-              </div>
-            </div>
-
-            <div class="section-box">
-              <div class="section-title">Dados da Empresa</div>
-              <div class="grid-2">
-                <p><strong>Razão Social:</strong> ${config.name}</p>
-                <p><strong>CNPJ:</strong> ${config.doc}</p>
-                <p><strong>E-mail:</strong> ${config.email || '-'}</p>
-                <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
-                <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
-              </div>
-            </div>
-
-            <div class="section-box">
-              <div class="section-title">Dados do Cliente</div>
-              <div class="grid-2">
-                <p><strong>Cliente / Razão Social:</strong> ${b.client}</p>
-                <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
-                <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
-                <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
-              </div>
-            </div>
-
-            <div class="section-box">
-              <div class="section-title">Equipamento / Máquina</div>
-              <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
-            </div>
-
-            <div class="section-box">
-              <div class="section-title">Escopo dos Serviços / Peças</div>
-              <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
-            </div>
-
-            <div class="section-box">
-              <div class="section-title">Condições Comerciais</div>
-              <p style="white-space: pre-wrap; margin-bottom: 8px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
-              <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
-                VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
-              </div>
-            </div>
-
-            <div style="margin-top: 25px; text-align: right; page-break-inside: avoid;">
-              <p>________________________________________</p>
-              <p><strong>Otávio Barbosa</strong></p>
-              <p style="font-size: 11px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.innerHTML = `
+        <div class="print-body" style="background: white; padding: 20px;">
+          <div class="watermark">LASER EXPERT</div>
+          <div class="print-header">
+            <img src="logo.png" alt="Logo">
+            <div class="print-header-info">
+              <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
+              <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
             </div>
           </div>
-        `;
+          <div class="section-box">
+            <div class="section-title">Dados da Empresa</div>
+            <div class="grid-2">
+              <p><strong>Razão Social:</strong> ${config.name}</p>
+              <p><strong>CNPJ:</strong> ${config.doc}</p>
+              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
+              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
+              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
+            </div>
+          </div>
+          <div class="section-box">
+            <div class="section-title">Dados do Cliente</div>
+            <div class="grid-2">
+              <p><strong>Cliente / Razão Social:</strong> ${b.client}</p>
+              <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
+              <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
+              <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
+            </div>
+          </div>
+          <div class="section-box">
+            <div class="section-title">Equipamento / Máquina</div>
+            <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
+          </div>
+          <div class="section-box">
+            <div class="section-title">Escopo dos Serviços / Peças</div>
+            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
+          </div>
+          <div class="section-box">
+            <div class="section-title">Condições Comerciais</div>
+            <p style="white-space: pre-wrap; margin-bottom: 8px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
+            <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
+              VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
+            </div>
+          </div>
+          <div style="margin-top: 25px; text-align: right; page-break-inside: avoid;">
+            <p>________________________________________</p>
+            <p><strong>Otávio Barbosa</strong></p>
+            <p style="font-size: 11px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(tempContainer);
 
-        document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
-        document.getElementById('budgetRenderArea').innerHTML = htmlContent;
-        document.getElementById('loadingStatus').style.display = 'inline';
-        document.getElementById('budgetPreviewModal').style.display = 'flex';
+      await waitForImages(tempContainer);
 
-        setTimeout(() => {
-          document.getElementById('loadingStatus').style.display = 'none';
-        }, 1200);
-      } catch (e) {
-        alert("Erro ao abrir pré-visualização do orçamento.");
-      }
-    };
-
-    window.closeModal = function() {
-      document.getElementById('budgetPreviewModal').style.display = 'none';
-    };
-
-    window.sharePDF = async function() {
-      const element = document.getElementById('budgetRenderArea');
-      if (!element) return;
-
-      const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
+      const filename = `Orcamento_${b.number}_${b.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       const opt = {
         margin:       10,
         filename:     filename,
@@ -485,21 +453,22 @@
       };
 
       try {
-        const worker = html2pdf().from(element).set(opt);
+        const worker = html2pdf().from(tempContainer).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Orçamento ${activeBudgetData.number}`,
-            text: `Segue o Orçamento ${activeBudgetData.number} (${activeBudgetData.client}). Valor total: R$ ${activeBudgetData.total}`,
+            title: `Orçamento ${b.number}`,
+            text: `Segue o Orçamento ${b.number} (${b.client}). Valor total: R$ ${Number(b.total || 0).toFixed(2)}`,
             files: [pdfFile]
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
         }
       } catch (err) {
+        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
