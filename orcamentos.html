@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
   <!-- Firebase SDKs e Sincronização -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -93,7 +93,13 @@
     .print-header-info h1 { font-size: 14px; color: #0B132B; margin: 0; font-weight: bold; }
     .section-box { border: 1px solid #CBD5E1; padding: 10px; margin-bottom: 10px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
     .section-title { font-weight: bold; font-size: 12px; color: #0B132B; margin-bottom: 6px; border-bottom: 1px solid #E2E8F0; padding-bottom: 3px; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    
+    /* Grelha Responsiva */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 768px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
     .print-body p { margin: 2px 0; }
   </style>
 </head>
@@ -153,34 +159,34 @@
         <div class="grid-2" style="margin-bottom: 15px;">
           <div>
             <label for="orcTotal"><strong>Valor Total (R$):</strong></label>
-            <input type="number" step="0.01" id="orcTotal" placeholder="0.00" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+            <input type="number" step="0.01" id="orcTotal" placeholder="0.00" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 5px;">
           </div>
           <div>
-            <label><strong>Condições Comerciais (Opções Rápidas):</strong></label>
-            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
-              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
-                <input type="checkbox" class="term-check" value="Pagamento a combinar." checked style="margin-top: 2px; flex-shrink: 0;">
+            <label style="margin-bottom: 5px; display: block;"><strong>Condições Comerciais (Opções Rápidas):</strong></label>
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 10px;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" class="term-check" value="Pagamento a combinar." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Pagamento a combinar.</span>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
-                <input type="checkbox" class="term-check" value="Impostos inclusos." checked style="margin-top: 2px; flex-shrink: 0;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" class="term-check" value="Impostos inclusos." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Impostos inclusos.</span>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
-                <input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked style="margin-top: 2px; flex-shrink: 0;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Despesas com deslocamento, alimentação e hotel já incluso no orçamento.</span>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
-                <input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked style="margin-top: 2px; flex-shrink: 0;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Deixar um cilindro de gás laser cheio para testes.</span>
               </label>
-              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
-                <input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked style="margin-top: 2px; flex-shrink: 0;">
+              <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 12px; cursor: pointer; margin: 0; line-height: 1.4;">
+                <input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;">
                 <span>Não estão inclusos, óleos, peças e espelhos.</span>
               </label>
             </div>
-            <label for="orcTerms"><strong>Texto / Condições Comerciais Personalizadas:</strong></label>
-            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
+            <label for="orcTerms" style="margin-top: 8px; display: block;"><strong>Texto / Condições Comerciais Personalizadas:</strong></label>
+            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; margin-top: 4px;"></textarea>
           </div>
         </div>
 
