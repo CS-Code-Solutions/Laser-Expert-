@@ -68,14 +68,31 @@
       overflow-y: auto;
       background: #FFF;
       flex: 1;
+      position: relative;
     }
 
-    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; }
+    /* Marca d'água sucinta e elegante repetida por página no RS */
+    .watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 55px;
+      font-weight: bold;
+      color: rgba(0, 245, 212, 0.05);
+      z-index: 0;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; }
     .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
     .print-header img { height: 50px; width: auto; }
     .print-header-info { text-align: right; }
     .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
-    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; }
+    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
     .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .print-body p { margin: 3px 0; }
@@ -134,7 +151,7 @@
       <div class="action-toolbar">
         <div>
           <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar imagens...</span>
+          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar...</span>
         </div>
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
@@ -170,7 +187,6 @@
         }
 
         let htmlRows = '';
-        // Exibe o mais recente no topo (ordem decrescente)
         for (let i = reports.length - 1; i >= 0; i--) {
           const rep = reports[i];
           if (!rep) continue;
@@ -198,10 +214,7 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       await renderHistory();
-      // Escuta alterações em tempo real via Firestore
-      DataSync.listen('rg_reports', () => {
-        renderHistory();
-      });
+      DataSync.listen('rg_reports', () => renderHistory());
     });
 
     window.deleteReport = async function(index) {
@@ -356,6 +369,9 @@
 
       const fullReportHtml = `
         <div class="print-body">
+          <!-- MARCA D'ÁGUA SUCINTA NO RS -->
+          <div class="watermark">LASER EXPERT</div>
+
           <div class="print-header">
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
