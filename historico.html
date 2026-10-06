@@ -70,7 +70,6 @@
       position: relative;
     }
 
-    /* Marca d'água elegante em cada página */
     .watermark {
       position: absolute;
       top: 45%;
@@ -150,6 +149,7 @@
       <div class="action-toolbar">
         <div>
           <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
+          <span id="loadingStatusRs" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
@@ -455,6 +455,13 @@
       document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
       document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
       document.getElementById('reportPreviewModal').style.display = 'flex';
+
+      // Aguarda 900ms para renderizar perfeitamente no ecrã e abre o menu de partilha automaticamente
+      setTimeout(async () => {
+        const loadingStatus = document.getElementById('loadingStatusRs');
+        if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
+        await sharePDF();
+      }, 900);
     };
 
     window.closeModal = function() {
@@ -488,11 +495,9 @@
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente.");
         }
       } catch (err) {
         console.error(err);
-        alert("Erro ao gerar o PDF: " + err.message);
       }
     };
   </script>
