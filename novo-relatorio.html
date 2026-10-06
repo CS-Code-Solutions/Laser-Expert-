@@ -25,7 +25,7 @@
           <li><a href="novo-relatorio.html" class="active">Novo Relatório</a></li>
           <li><a href="historico.html">Histórico RS</a></li>
           <li><a href="configuracao.html">Configuração</a></li>
-            <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
+          <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
         </ul>
       </nav>
     </div>
@@ -115,37 +115,53 @@
         <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
             <h3 style="font-size: 15px; margin-top: 0; color: var(--deep-navy); margin-bottom: 15px;">Critérios de Cobrança e Deslocação</h3>
             
+            <!-- Opção de Empreitada -->
             <div class="form-group">
-                <label for="tem-hora">Cobrar Hora Trabalhada?</label>
-                <select id="tem-hora">
-                    <option value="sim">Sim</option>
+                <label for="tem-empreitada">Cobrar por Empreitada?</label>
+                <select id="tem-empreitada">
                     <option value="nao">Não</option>
+                    <option value="sim">Sim</option>
                 </select>
             </div>
 
-            <div id="bloco-turnos" style="background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor da Hora (R$):</label>
-                    <input type="number" step="0.01" id="valor-hora" value="200.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
+            <div id="bloco-empreitada" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
+                <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor total do serviço (R$):</label>
+                <input type="number" step="0.01" id="valor-empreitada" placeholder="Ex: 1500.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
+            </div>
+
+            <div id="bloco-horas-geral">
+                <div class="form-group">
+                    <label for="tem-hora">Cobrar Hora Trabalhada?</label>
+                    <select id="tem-hora">
+                        <option value="sim">Sim</option>
+                        <option value="nao">Não</option>
+                    </select>
                 </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Manhã:</label>
-                        <input type="datetime-local" id="time-start-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+
+                <div id="bloco-turnos" style="background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
+                    <div style="margin-bottom: 10px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor da Hora (R$):</label>
+                        <input type="number" step="0.01" id="valor-hora" value="200.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
                     </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Manhã:</label>
-                        <input type="datetime-local" id="time-end-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Manhã:</label>
+                            <input type="datetime-local" id="time-start-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Manhã:</label>
+                            <input type="datetime-local" id="time-end-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                        </div>
                     </div>
-                </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Tarde:</label>
-                        <input type="datetime-local" id="time-start-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Tarde (Encerramento):</label>
-                        <input type="datetime-local" id="time-end-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Tarde:</label>
+                            <input type="datetime-local" id="time-start-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                        </div>
+                        <div style="flex: 1; min-width: 180px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Tarde (Encerramento):</label>
+                            <input type="datetime-local" id="time-end-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -261,11 +277,17 @@
     </section>
   </main>
 
-<footer>
-    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by  <strong>CS Code Solutions</strong></p>
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
+    document.getElementById('tem-empreitada').addEventListener('change', function() {
+        const isEmpreitada = this.value === 'sim';
+        document.getElementById('bloco-empreitada').style.display = isEmpreitada ? 'block' : 'none';
+        document.getElementById('bloco-horas-geral').style.display = isEmpreitada ? 'none' : 'block';
+    });
+
     document.getElementById('tem-hora').addEventListener('change', function() {
         document.getElementById('bloco-turnos').style.display = this.value === 'sim' ? 'block' : 'none';
     });
@@ -378,6 +400,13 @@
       techNameInput.value = rep.technician || config.tech || '';
       document.getElementById('description').value = rep.desc || '';
       document.getElementById('payment-terms').value = rep.paymentTerms || '';
+
+      if (rep.temEmpreitada) {
+          document.getElementById('tem-empreitada').value = rep.temEmpreitada;
+          document.getElementById('bloco-empreitada').style.display = rep.temEmpreitada === 'sim' ? 'block' : 'none';
+          document.getElementById('bloco-horas-geral').style.display = rep.temEmpreitada === 'sim' ? 'none' : 'block';
+      }
+      document.getElementById('valor-empreitada').value = rep.valorEmpreitada || '';
 
       if (rep.temHora) {
           document.getElementById('tem-hora').value = rep.temHora;
@@ -517,6 +546,9 @@
         desc: document.getElementById('description').value,
         paymentTerms: document.getElementById('payment-terms').value,
         
+        temEmpreitada: document.getElementById('tem-empreitada').value,
+        valorEmpreitada: document.getElementById('valor-empreitada').value,
+
         temHora: document.getElementById('tem-hora').value,
         valorHora: document.getElementById('valor-hora').value,
         startManha: document.getElementById('time-start-manha').value,
@@ -558,7 +590,6 @@
         localStorage.setItem('rg_config', JSON.stringify(config));
       }
 
-      // Proteção contra armazenamento cheio (QuotaExceededError)
       try {
           localStorage.setItem('rg_reports', JSON.stringify(currentReports));
       } catch (err) {
