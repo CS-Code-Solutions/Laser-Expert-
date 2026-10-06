@@ -451,11 +451,12 @@
       document.getElementById('budgetRenderArea').innerHTML = htmlContent;
       document.getElementById('budgetPreviewModal').style.display = 'flex';
 
+      // Aguarda 1800ms para renderizar todos os blocos na íntegra antes de gerar o PDF e abrir o menu
       setTimeout(async () => {
         const loadingStatus = document.getElementById('loadingStatusOrc');
         if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
         await sharePDF();
-      }, 900);
+      }, 1800);
     };
 
     window.closeModal = function() {
@@ -470,7 +471,6 @@
       const originalOverflow = scrollContainer ? scrollContainer.style.overflow : '';
       const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
       
-      // Remove temporariamente o limite de scroll para o html2pdf capturar o documento completo
       if (scrollContainer) {
         scrollContainer.style.overflow = 'visible';
         scrollContainer.style.maxHeight = 'none';
@@ -490,7 +490,6 @@
         const worker = html2pdf().from(element).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         
-        // Restaura o scroll do modal
         if (scrollContainer) {
           scrollContainer.style.overflow = originalOverflow;
           scrollContainer.style.maxHeight = originalMaxHeight;
