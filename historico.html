@@ -98,7 +98,7 @@
     .print-body p { margin: 2px 0; }
     .signature-area { margin-top: 20px; display: flex; justify-content: space-between; align-items: flex-end; page-break-inside: avoid; }
     .signature-box { text-align: center; width: 45%; }
-    .signature-box img { max-width: 180px; height: 50px; object-fit: contain; display: block; margin: 0 auto; border-bottom: 1px solid #000; }
+    .signature-box img { max-width: 180px; height: 50px; object-fit: contain; display: block; margin: 0 auto; }
     .page-break { page-break-before: always; }
   </style>
 </head>
@@ -157,7 +157,7 @@
           <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
         </div>
       </div>
-      <div class="report-scroll-container">
+      <div class="report-scroll-container" id="reportScrollContainer">
         <div id="reportRenderArea"></div>
       </div>
     </div>
@@ -339,6 +339,25 @@
           </div>
         </div>`;
 
+      // Seletores de segurança para encontrar as assinaturas independentemente do nome do campo na base de dados
+      const clientSignature = rep.signature || rep.assinatura || rep.clientSignature || rep.assinaturaCliente || '';
+      const techSignature = rep.techSignature || rep.assinaturaTecnico || rep.technicalSignature || '';
+
+      const signatureAreaHtml = `
+        <div class="signature-area">
+          <div class="signature-box">
+            ${techSignature ? `<img src="${techSignature}" alt="Assinatura Técnico">` : '<p style="height: 50px;"></p>'}
+            <p>________________________________________</p>
+            <p><strong>Técnico Responsável:</strong> ${rep.technician || config.tech || 'Otávio Barbosa'}</p>
+          </div>
+          <div class="signature-box">
+            ${clientSignature ? `<img src="${clientSignature}" alt="Assinatura Cliente">` : '<p style="height: 50px;"></p>'}
+            <p>________________________________________</p>
+            <p><strong>Assinatura do Cliente</strong></p>
+          </div>
+        </div>
+      `;
+
       let anexosHtml = '';
       if (rep.anexos && rep.anexos.length > 0) {
         let itemsHtml = '';
@@ -435,18 +454,7 @@
 
           ${pixSectionHtml}
 
-          <div class="signature-area">
-            <div class="signature-box">
-              ${rep.techSignature ? `<img src="${rep.techSignature}" alt="Assinatura Técnico">` : '<p style="height: 50px;"></p>'}
-              <p>________________________________________</p>
-              <p><strong>Técnico Responsável:</strong> ${rep.technician || config.tech || 'Otávio Barbosa'}</p>
-            </div>
-            <div class="signature-box">
-              ${rep.signature ? `<img src="${rep.signature}" alt="Assinatura Cliente">` : '<p style="height: 50px;"></p>'}
-              <p>________________________________________</p>
-              <p><strong>Assinatura do Cliente</strong></p>
-            </div>
-          </div>
+          ${signatureAreaHtml}
 
           ${anexosHtml}
         </div>
@@ -471,6 +479,15 @@
       const element = document.getElementById('reportRenderArea');
       if (!element) return;
 
+      const scrollContainer = document.getElementById('reportScrollContainer');
+      const originalOverflow = scrollContainer ? scrollContainer.style.overflow : '';
+      const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
+
+      if (scrollContainer) {
+        scrollContainer.style.overflow = 'visible';
+        scrollContainer.style.maxHeight = 'none';
+      }
+
       const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       
       const opt = {
@@ -484,6 +501,12 @@
       try {
         const worker = html2pdf().from(element).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
+
+        if (scrollContainer) {
+          scrollContainer.style.overflow = originalOverflow;
+          scrollContainer.style.maxHeight = originalMaxHeight;
+        }
+
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
@@ -496,6 +519,10 @@
           worker.save();
         }
       } catch (err) {
+        if (scrollContainer) {
+          scrollContainer.style.overflow = originalOverflow;
+          scrollContainer.style.maxHeight = originalMaxHeight;
+        }
         console.error(err);
       }
     };
