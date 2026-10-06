@@ -1,42 +1,147 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <link rel="icon" href="img/ico1.png" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laser Expert - Login</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B132B">
+  <link rel="icon" href="img/ico1.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laser Expert - Login</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Estilo específico para o fundo tecnológico e cartão centralizado */
+    body.login-page {
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      /* Fundo com gradiente industrial e efeito de linhas técnicas subtis */
+      background: linear-gradient(135deg, #0B132B 0%, #1C2541 50%, #3A506B 100%);
+      background-image: 
+        radial-gradient(rgba(0, 245, 212, 0.1) 1px, transparent 1px),
+        linear-gradient(135deg, #0B132B 0%, #1C2541 100%);
+      background-size: 30px 30px, 100% 100%;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: #FFFFFF;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+      padding: 35px 30px;
+      text-align: center;
+      border-top: 4px solid #00F5D4;
+    }
+
+    .login-card img.logo-login {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 25px;
+    }
+
+    .login-card h2 {
+      font-size: 1.2rem;
+      color: #0B132B;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: #334155;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid #CBD5E1;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+      box-sizing: border-box;
+    }
+
+    .form-group input:focus {
+      border-color: #00F5D4;
+      box-shadow: 0 0 0 3px rgba(0, 245, 212, 0.15);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 12px;
+      background: #00F5D4;
+      color: #0B132B;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+
+    .btn-login:hover {
+      background: #00ddbe;
+    }
+
+    .login-footer {
+      margin-top: 25px;
+      font-size: 0.75rem;
+      color: #94A3B8;
+    }
+
+    .login-footer strong {
+      color: #00F5D4;
+    }
+  </style>
 </head>
-<body style="display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--deep-navy);">
+<body class="login-page">
 
-  <div class="card" style="width: 100%; max-width: 400px; margin: 20px; text-align: center; border-top: 4px solid var(--electric-cyan);">
-    <div style="margin-bottom: 20px;">
-      <img src="logo.png" alt="Laser Expert" style="height: 50px; width: auto; object-fit: contain; margin-bottom: 10px;">
-      <h2 style="color: var(--deep-navy); font-size: 1.3rem;">Painel de Acesso</h2>
+  <div class="login-container">
+    <div class="login-card">
+      <img src="logo.png" alt="Laser Expert Logo" class="logo-login">
+      <h2>Acesso ao Sistema de RS</h2>
+      
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">E-mail de Acesso</label>
+          <input type="email" id="email" placeholder="ex: comercial@laserexpert.com.br" required>
+        </div>
+
+        <div class="form-group">
+          <label for="senha">Palavra-passe</label>
+          <input type="password" id="senha" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn-login">ENTRAR</button>
+      </form>
+
+      <div class="login-footer">
+        <p>&copy; 2026 Laser Expert | Powered by <strong>CS Code Solutions</strong></p>
+      </div>
     </div>
-
-    <form id="loginForm">
-      <div class="form-group" style="text-align: left;">
-        <label for="userEmail">Usuário / E-mail</label>
-        <input type="text" id="userEmail" required placeholder="Digite seu e-mail ou usuário">
-      </div>
-      <div class="form-group" style="text-align: left;">
-        <label for="userPassword">Palavra-passe / PIN</label>
-        <input type="password" id="userPassword" required placeholder="••••••••">
-      </div>
-      <button type="submit" class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px;">Entrar no Sistema</button>
-    </form>
   </div>
-
-  <footer style="background: transparent; color: var(--slate-gray); width: 100%; position: absolute; bottom: 10px; text-align: center;">
-    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by  <strong>CS Code Solutions</strong></p>
-  </footer>
 
   <script>
     document.getElementById('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
+      // Registo de sessão ativa no LocalStorage
       localStorage.setItem('rg_logged', 'true');
       window.location.href = 'index.html';
     });
