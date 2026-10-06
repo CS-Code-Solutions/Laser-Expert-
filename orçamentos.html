@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <link rel="icon" href="img/ico1.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laser Expert - Gestão de Orçamentos</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- html2pdf CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    @media print {
+      header, footer, .no-print, .action-toolbar { display: none !important; }
+      body { background: white; color: black; padding: 0; margin: 0; }
+      .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+    }
+
+    #budgetPreviewModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 43, 0.85);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    .modal-content-wrapper {
+      background: white;
+      width: 100%;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      max-height: 92vh;
+      overflow: hidden;
+    }
+    .action-toolbar {
+      background: var(--deep-navy);
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 2px solid var(--electric-cyan);
+    }
+    .toolbar-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .report-scroll-container {
+      padding: 20px;
+      overflow-y: auto;
+      background: #FFF;
+      flex: 1;
+      position: relative;
+    }
+
+    /* Estilo da Marca d'Água no PDF/Pré-visualização */
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 65px;
+      font-weight: bold;
+      color: rgba(0, 245, 212, 0.08);
+      z-index: 0;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+      text-transform: uppercase;
+    }
+
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; }
+    .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
+    .print-header img { height: 50px; width: auto; }
+    .print-header-info { text-align: right; }
+    .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
+    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; }
+    .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .print-body p { margin: 3px 0; }
+  </style>
+</head>
+<body>
+
+  <header class="no-print">
+    <div class="nav-container">
+      <a href="index.html" class="logo">
+        <img src="logo.png" alt="Logo">
+      </a>
+      <nav>
+        <ul>
+          <li><a href="index.html">Clientes</a></li>
+          <li><a href="maquinas.html">Máquinas</a></li>
+          <li><a href="novo-relatorio.html">Novo Relatório</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="orcamentos.html" class="active">Orçamentos</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
+          <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Secção de Criação / Edição de Orçamento -->
+    <section class="card no-print" style="margin-bottom: 20px;">
+      <h2 id="formTitle">Novo Orçamento</h2>
+      <form id="budgetForm">
+        <input type="hidden" id="editIndex" value="">
+        <div class="grid-2" style="margin-bottom: 12px;">
+          <div>
+            <label for="orcNumber"><strong>Nº do Orçamento:</strong></label>
+            <input type="text" id="orcNumber" class="form-control" value="ORC-0001" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+          <div>
+            <label for="orcDate"><strong>Data:</strong></label>
+            <input type="date" id="orcDate" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 12px;">
+          <div>
+            <label for="orcClient"><strong>Cliente:</strong></label>
+            <select id="orcClient" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;"></select>
+          </div>
+          <div>
+            <label for="orcEquipment"><strong>Equipamento / Máquina:</strong></label>
+            <input type="text" id="orcEquipment" placeholder="Ex: Coladeira de Borda SCM" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label for="orcDesc"><strong>Descrição dos Serviços / Peças:</strong></label>
+          <textarea id="orcDesc" rows="4" placeholder="Detalhe os itens, peças e serviços incluídos neste orçamento..." style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 15px;">
+          <div>
+            <label for="orcTotal"><strong>Valor Total (R$):</strong></label>
+            <input type="number" step="0.01" id="orcTotal" placeholder="0.00" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+          <div>
+            <label for="orcTerms"><strong>Validade / Condição de Pagamento:</strong></label>
+            <input type="text" id="orcTerms" placeholder="Ex: 15 dias / 30 dias" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn" style="background-color: #00F5D4; color: #0B132B; font-weight: bold; padding: 10px 20px;">Salvar Orçamento</button>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 10px 20px;" onclick="resetForm()">Cancelar / Limpar</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Histórico de Orçamentos -->
+    <section class="card">
+      <h2>Histórico de Orçamentos</h2>
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº Orçamento</th>
+              <th>Data</th>
+              <th>Cliente</th>
+              <th>Equipamento</th>
+              <th>Valor Total</th>
+              <th class="no-print">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="budgetTableBody">
+            <tr><td colspan="6" style="text-align: center; color: #64748B;">A carregar orçamentos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal de Pré-visualização com Marca d'Água -->
+  <div id="budgetPreviewModal">
+    <div class="modal-content-wrapper">
+      <div class="action-toolbar">
+        <div>
+          <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
+          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar imagens...</span>
+        </div>
+        <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
+          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+        </div>
+      </div>
+      <div class="report-scroll-container">
+        <div id="budgetRenderArea"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="no-print">
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
+  </footer>
+
+  <script>
+    let activeBudgetData = {};
+
+    // Definir data atual por defeito no input
+    document.getElementById('orcDate').valueAsDate = new Date();
+
+    function loadClientsSelect() {
+      const select = document.getElementById('orcClient');
+      select.innerHTML = '<option value="">Selecione um cliente...</option>';
+      try {
+        const clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
+        clients.forEach(c => {
+          select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+        });
+      } catch (e) {}
+    }
+
+    function renderBudgets() {
+      const tbody = document.getElementById('budgetTableBody');
+      if (!tbody) return;
+
+      try {
+        let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+        tbody.innerHTML = '';
+        if (budgets.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #64748B;">Nenhum orçamento registado.</td></tr>';
+          return;
+        }
+
+        let htmlRows = '';
+        // Ordem decrescente (último no topo)
+        for (let i = budgets.length - 1; i >= 0; i--) {
+          const b = budgets[i];
+          if (!b) continue;
+          htmlRows += `
+            <tr>
+              <td><strong>${b.number || 'ORC-0001'}</strong></td>
+              <td>${b.date || '-'}</td>
+              <td>${b.client || '-'}</td>
+              <td>${b.equipment || '-'}</td>
+              <td>R$ ${Number(b.total || 0).toFixed(2)}</td>
+              <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openBudgetPreview(${i})">Gerar Orçamento</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editBudget(${i})">Editar</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteBudget(${i})">Excluir</button>
+              </td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = htmlRows;
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Erro ao carregar orçamentos.</td></tr>`;
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadClientsSelect();
+      renderBudgets();
+      
+      // Gerar número automático sequencial se for novo
+      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+      if (budgets.length > 0) {
+        document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
+      }
+    });
+
+    document.getElementById('budgetForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editIndex = document.getElementById('editIndex').value;
+      
+      const newBudget = {
+        number: document.getElementById('orcNumber').value,
+        date: document.getElementById('orcDate').value,
+        client: document.getElementById('orcClient').value,
+        equipment: document.getElementById('orcEquipment').value,
+        desc: document.getElementById('orcDesc').value,
+        total: document.getElementById('orcTotal').value,
+        terms: document.getElementById('orcTerms').value
+      };
+
+      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+      if (editIndex !== '') {
+        budgets[editIndex] = newBudget;
+      } else {
+        budgets.push(newBudget);
+      }
+
+      localStorage.setItem('rg_orcamentos', JSON.stringify(budgets));
+      resetForm();
+      renderBudgets();
+    });
+
+    window.resetForm = function() {
+      document.getElementById('budgetForm').reset();
+      document.getElementById('editIndex').value = '';
+      document.getElementById('formTitle').textContent = 'Novo Orçamento';
+      document.getElementById('orcDate').valueAsDate = new Date();
+      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+      document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
+    };
+
+    window.editBudget = function(index) {
+      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+      const b = budgets[index];
+      if (!b) return;
+
+      document.getElementById('editIndex').value = index;
+      document.getElementById('formTitle').textContent = `Editar Orçamento - ${b.number}`;
+      document.getElementById('orcNumber').value = b.number;
+      document.getElementById('orcDate').value = b.date;
+      document.getElementById('orcClient').value = b.client;
+      document.getElementById('orcEquipment').value = b.equipment;
+      document.getElementById('orcDesc').value = b.desc;
+      document.getElementById('orcTotal').value = b.total;
+      document.getElementById('orcTerms').value = b.terms;
+      
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    window.deleteBudget = function(index) {
+      if (confirm('Deseja realmente excluir este orçamento?')) {
+        let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+        budgets.splice(index, 1);
+        localStorage.setItem('rg_orcamentos', JSON.stringify(budgets));
+        renderBudgets();
+      }
+    };
+
+    window.openBudgetPreview = function(index) {
+      let budgets = JSON.parse(localStorage.getItem('rg_orcamentos')) || [];
+      const b = budgets[index];
+      if (!b) { alert("Orçamento não encontrado."); return; }
+
+      const defaultConfig = { 
+        name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA', 
+        tech: 'Otávio Barbosa',
+        doc: '48.959.536/0001-65',
+        email: 'comercial@laserexpertbr.com.br',
+        contact: '+55 51 98144-1865',
+        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+      };
+
+      let config = { ...defaultConfig };
+      try {
+        const savedCfg = JSON.parse(localStorage.getItem('rg_config'));
+        if (savedCfg) config = { ...defaultConfig, ...savedCfg };
+      } catch (e) {}
+
+      let clients = [];
+      try { clients = JSON.parse(localStorage.getItem('rg_clients')) || []; } catch (e) {}
+      const clientObj = clients.find(c => c.name === b.client) || {};
+
+      activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
+
+      const htmlContent = `
+        <div class="print-body">
+          <!-- MARCA D'ÁGUA NO PDF -->
+          <div class="watermark">LASER EXPERT</div>
+
+          <div class="print-header">
+            <img src="logo.png" alt="Logo">
+            <div class="print-header-info">
+              <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
+              <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
+            </div>
+          </div>
+
+          <div class="section-box">
+            <div class="section-title">Dados da Empresa</div>
+            <div class="grid-2">
+              <p><strong>Razão Social:</strong> ${config.name}</p>
+              <p><strong>CNPJ:</strong> ${config.doc}</p>
+              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
+              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
+              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
+            </div>
+          </div>
+
+          <div class="section-box">
+            <div class="section-title">Dados do Cliente</div>
+            <div class="grid-2">
+              <p><strong>Nome / Razão Social:</strong> ${b.client}</p>
+              <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
+              <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
+              <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
+            </div>
+          </div>
+
+          <div class="section-box">
+            <div class="section-title">Equipamento</div>
+            <p><strong>Equipamento / Máquina:</strong> ${b.equipment || '-'}</p>
+          </div>
+
+          <div class="section-box">
+            <div class="section-title">Descrição Comercial e Escopo</div>
+            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
+          </div>
+
+          <div class="section-box">
+            <div class="section-title">Condições e Valor</div>
+            <p style="margin-bottom: 8px;">• <strong>Condição de Pagamento / Validade:</strong> ${b.terms || '-'}</p>
+            <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
+              VALOR TOTAL DO ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
+      document.getElementById('budgetRenderArea').innerHTML = htmlContent;
+      document.getElementById('loadingStatus').style.display = 'inline';
+      document.getElementById('budgetPreviewModal').style.display = 'flex';
+
+      setTimeout(() => {
+        document.getElementById('loadingStatus').style.display = 'none';
+      }, 1200);
+    };
+
+    window.closeModal = function() {
+      document.getElementById('budgetPreviewModal').style.display = 'none';
+    };
+
+    window.sharePDF = async function() {
+      const element = document.getElementById('budgetRenderArea');
+      if (!element) return;
+
+      const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      
+      const opt = {
+        margin:       10,
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      try {
+        const worker = html2pdf().from(element).set(opt);
+        const pdfBlob = await worker.outputPdf('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            title: `Orçamento ${activeBudgetData.number}`,
+            text: `Segue o Orçamento ${activeBudgetData.number} (${activeBudgetData.client}). Valor total: R$ ${activeBudgetData.total}`,
+            files: [pdfFile]
+          });
+        } else {
+          worker.save();
+          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao gerar o PDF: " + err.message);
+      }
+    };
+  </script>
+
+</body>
+</html>
