@@ -147,7 +147,7 @@
 
         <div style="margin-bottom: 12px;">
           <label for="orcDesc"><strong>Dados do Serviço / Escopo:</strong></label>
-          <textarea id="orcDesc" rows="5" placeholder="Descreva os serviços (Ex: Ressonador, Alinhamento, Troca de turbina e espelhos...)" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
+          <textarea id="orcDesc" rows="5" placeholder="Descreva os serviços..." style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
         </div>
 
         <div class="grid-2" style="margin-bottom: 15px;">
@@ -190,6 +190,26 @@
     </section>
   </main>
 
+  <!-- Modal de Pré-visualização e Partilha -->
+  <div id="budgetPreviewModal">
+    <div class="modal-content-wrapper">
+      <div class="action-toolbar">
+        <div>
+          <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
+          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ Pronto</span>
+        </div>
+        <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
+          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+        </div>
+      </div>
+      <div class="report-scroll-container">
+        <div id="budgetRenderArea"></div>
+      </div>
+    </div>
+  </div>
+
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
@@ -205,7 +225,7 @@
         const clients = await DataSync.load('rg_clients') || [];
         select.innerHTML = '<option value="">Selecione um cliente...</option>';
         clients.forEach(c => {
-          select.innerHTML += `<option value="${c.name}">${c.name} (A/C: ${c.contact || c.name})</option>`;
+          select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
         });
       } catch (e) {
         console.error("Erro ao carregar clientes", e);
@@ -346,19 +366,6 @@
       }
     };
 
-    // Função auxiliar para aguardar o carregamento completo das imagens antes de gerar o PDF
-    function waitForImages(container) {
-      const imgs = container.querySelectorAll('img');
-      const promises = Array.from(imgs).map(img => {
-        if (img.complete) return Promise.resolve();
-        return new Promise(resolve => {
-          img.onload = resolve;
-          img.onerror = resolve;
-        });
-      });
-      return Promise.all(promises);
-    }
-
     window.openBudgetPreview = async function(index) {
       let budgets = await DataSync.load('rg_orcamentos') || [];
       const b = budgets[index];
@@ -384,13 +391,10 @@
 
       activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
 
-      const tempContainer = document.createElement('div');
-      tempContainer.style.position = 'absolute';
-      tempContainer.style.left = '-9999px';
-      tempContainer.style.width = '800px';
-      tempContainer.innerHTML = `
-        <div class="print-body" style="background: white; padding: 20px;">
+      const htmlContent = `
+        <div class="print-body">
           <div class="watermark">LASER EXPERT</div>
+
           <div class="print-header">
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
@@ -398,6 +402,7 @@
               <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
             </div>
           </div>
+
           <div class="section-box">
             <div class="section-title">Dados da Empresa</div>
             <div class="grid-2">
@@ -408,6 +413,7 @@
               <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
             </div>
           </div>
+
           <div class="section-box">
             <div class="section-title">Dados do Cliente</div>
             <div class="grid-2">
@@ -417,14 +423,17 @@
               <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
             </div>
           </div>
+
           <div class="section-box">
             <div class="section-title">Equipamento / Máquina</div>
             <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
           </div>
+
           <div class="section-box">
             <div class="section-title">Escopo dos Serviços / Peças</div>
             <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
           </div>
+
           <div class="section-box">
             <div class="section-title">Condições Comerciais</div>
             <p style="white-space: pre-wrap; margin-bottom: 8px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
@@ -432,6 +441,7 @@
               VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
             </div>
           </div>
+
           <div style="margin-top: 25px; text-align: right; page-break-inside: avoid;">
             <p>________________________________________</p>
             <p><strong>Otávio Barbosa</strong></p>
@@ -439,11 +449,22 @@
           </div>
         </div>
       `;
-      document.body.appendChild(tempContainer);
 
-      await waitForImages(tempContainer);
+      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
+      document.getElementById('budgetRenderArea').innerHTML = htmlContent;
+      document.getElementById('budgetPreviewModal').style.display = 'flex';
+    };
 
-      const filename = `Orcamento_${b.number}_${b.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+    window.closeModal = function() {
+      document.getElementById('budgetPreviewModal').style.display = 'none';
+    };
+
+    window.sharePDF = async function() {
+      const element = document.getElementById('budgetRenderArea');
+      if (!element) return;
+
+      const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      
       const opt = {
         margin:       10,
         filename:     filename,
@@ -453,22 +474,21 @@
       };
 
       try {
-        const worker = html2pdf().from(tempContainer).set(opt);
+        const worker = html2pdf().from(element).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Orçamento ${b.number}`,
-            text: `Segue o Orçamento ${b.number} (${b.client}). Valor total: R$ ${Number(b.total || 0).toFixed(2)}`,
+            title: `Orçamento ${activeBudgetData.number}`,
+            text: `Segue o Orçamento ${activeBudgetData.number} (${activeBudgetData.client}). Valor total: R$ ${activeBudgetData.total}`,
             files: [pdfFile]
           });
         } else {
           worker.save();
+          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
         }
       } catch (err) {
-        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
