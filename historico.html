@@ -7,26 +7,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laser Expert - Histórico de RS</title>
   <link rel="stylesheet" href="style.css">
-  <!-- html2pdf CDN para gerar o PDF real -->
+  <!-- html2pdf CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     @media print {
-      header, footer, .no-print { display: none !important; }
+      header, footer, .no-print, .action-toolbar { display: none !important; }
       body { background: white; color: black; padding: 0; margin: 0; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
       .page-break { page-break-before: always; }
     }
 
-    /* Contenedor oculto para renderizar o PDF perfeitamente */
-    #pdf-render-container {
-      position: absolute;
-      left: -9999px;
-      top: 0;
-      width: 800px;
+    /* Modal de Pré-visualização Visível */
+    #reportPreviewModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 19, 43, 0.85);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+      padding: 15px;
+    }
+    .modal-content-wrapper {
       background: white;
+      width: 100%;
+      max-width: 800px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      max-height: 92vh;
+      overflow: hidden;
+    }
+    .action-toolbar {
+      background: var(--deep-navy);
+      color: white;
+      padding: 12px 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-bottom: 2px solid var(--electric-cyan);
+    }
+    .toolbar-buttons {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .report-scroll-container {
       padding: 20px;
+      overflow-y: auto;
+      background: #FFF;
+      flex: 1;
     }
 
+    /* Estilos do Relatório */
     .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; }
     .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
     .print-header img { height: 50px; width: auto; }
@@ -85,14 +122,34 @@
     </section>
   </main>
 
-  <!-- Div invisível onde o relatório é montado e processado pelo motor de PDF -->
-  <div id="pdf-render-container"></div>
+  <!-- Modal de Pré-visualização Visível -->
+  <div id="reportPreviewModal">
+    <div class="modal-content-wrapper">
+      <div class="action-toolbar">
+        <div>
+          <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
+          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar imagens...</span>
+        </div>
+        <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
+          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+        </div>
+      </div>
+      <div class="report-scroll-container">
+        <!-- O relatório é injetado aqui perfeitamente visível -->
+        <div id="reportRenderArea"></div>
+      </div>
+    </div>
+  </div>
 
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
+    let activeReportData = {};
+
     function renderHistory() {
       const historyTableBody = document.getElementById('historyTableBody');
       if (!historyTableBody) return;
@@ -122,7 +179,7 @@
               <td>${rep.equipment || '-'}</td>
               <td>${rep.serviceNature || rep.type || '-'}</td>
               <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
-                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #10B981;" onclick="generateAndShareReport(${index}, this)">📤 Enviar RS</button>
+                <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openReportPreview(${index})">Gerar RS</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editReport(${index})">Editar</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteReport(${index})">Excluir</button>
               </td>
@@ -185,7 +242,7 @@
         return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
     }
 
-    window.generateAndShareReport = async function(index, btnElement) {
+    window.openReportPreview = function(index) {
       let reports = [];
       try { reports = JSON.parse(localStorage.getItem('rg_reports')) || []; } catch (e) {}
 
@@ -241,6 +298,7 @@
       }
 
       const valorTotalStr = valorTotal.toFixed(2);
+      activeReportData = { number: rep.number, client: rep.client, total: valorTotalStr };
 
       let pixPayload = "";
       let qrCodeUrl = "";
@@ -377,51 +435,54 @@
         </div>
       `;
 
-      const originalBtnText = btnElement.textContent;
-      btnElement.textContent = "⏳ A gerar PDF...";
-      btnElement.disabled = true;
+      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
+      document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
+      document.getElementById('loadingStatus').style.display = 'inline';
+      document.getElementById('reportPreviewModal').style.display = 'flex';
 
-      const renderContainer = document.getElementById('pdf-render-container');
-      renderContainer.innerHTML = fullReportHtml;
+      // Aguarda 1.2 segundos para garantir o carregamento total das imagens na tela
+      setTimeout(() => {
+        document.getElementById('loadingStatus').style.display = 'none';
+      }, 1200);
+    };
 
-      // Tempo de espera (1.5 segundos) para carregar imagens e QR Code antes de gerar o PDF
-      setTimeout(async () => {
-        try {
-          const filename = `RS_${rep.number}_${rep.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-          const opt = {
-            margin:       10,
-            filename:     filename,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true, logging: false },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-          };
+    window.closeModal = function() {
+      document.getElementById('reportPreviewModal').style.display = 'none';
+    };
 
-          const worker = html2pdf().from(renderContainer).set(opt);
-          const pdfBlob = await worker.outputPdf('blob');
-          const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+    window.sharePDF = async function() {
+      const element = document.getElementById('reportRenderArea');
+      if (!element) return;
 
-          renderContainer.innerHTML = ''; // Limpar container
+      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      
+      const opt = {
+        margin:       10,
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
 
-          if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-            await navigator.share({
-              title: `Relatório de Serviço ${rep.number}`,
-              text: `Segue o Relatório de Serviço ${rep.number} (${rep.client}). Valor total: R$ ${valorTotalStr}`,
-              files: [pdfFile]
-            });
-          } else {
-            // Fallback se o navegador/dispositivo não suportar partilha direta de ficheiros
-            worker.save();
-            alert("O navegador descarregou o PDF, pois a partilha direta de ficheiros não está ativa neste dispositivo.");
-          }
-        } catch (err) {
-          console.error(err);
-          alert("Erro ao gerar PDF: " + err.message);
-          renderContainer.innerHTML = '';
-        } finally {
-          btnElement.textContent = originalBtnText;
-          btnElement.disabled = false;
+      try {
+        const worker = html2pdf().from(element).set(opt);
+        const pdfBlob = await worker.outputPdf('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            title: `Relatório de Serviço ${activeReportData.number}`,
+            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
+            files: [pdfFile]
+          });
+        } else {
+          worker.save();
+          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
         }
-      }, 1500);
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao gerar o PDF: " + err.message);
+      }
     };
   </script>
 
