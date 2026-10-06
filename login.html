@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- Firebase SDKs e Inicialização (Sem duplicações) -->
+  <!-- Firebase SDKs e Inicialização -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="firebase-init.js"></script>
-  <script src="firebase-sync.js"></script>
 
   <link rel="icon" href="img/ico1.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -115,6 +114,7 @@
       padding: 8px;
       border-radius: 4px;
       border: 1px solid #FCA5A5;
+      text-align: left;
     }
 
     .login-footer {
@@ -138,7 +138,7 @@
       <form id="loginForm">
         <div class="form-group">
           <label for="email">E-mail de Acesso</label>
-          <input type="email" id="email" placeholder="ex: comercial@laserexpertbr.com.br" required>
+          <input type="email" id="email" placeholder="ex: admin@expert.com" required>
         </div>
 
         <div class="form-group">
@@ -160,43 +160,32 @@
   <script>
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const emailInput = document.getElementById('email').value.trim().toLowerCase();
-      const passwordInput = document.getElementById('senha').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('senha').value.trim();
       const errorBox = document.getElementById('loginError');
       const submitBtn = document.getElementById('submitBtn');
 
       errorBox.style.display = 'none';
       submitBtn.disabled = true;
-      submitBtn.textContent = 'A VERIFICAR...';
+      submitBtn.textContent = 'A AUTENTICAR...';
 
       try {
-        // Carrega utilizadores autorizados da nuvem
-        let users = await DataSync.load('rg_users');
-        
-        // Se a base estiver vazia, cria o admin padrão de segurança automaticamente
-        if (!users || !Array.isArray(users) || users.length === 0) {
-          users = [
-            { email: 'comercial@laserexpertbr.com.br', password: 'admin' }
-          ];
-          await DataSync.save('rg_users', users);
-        }
+        // Autenticação oficial via Firebase Authentication (igual ao projeto Ísis)
+        await firebase.auth().signInWithEmailAndPassword(email, password);
 
-        // Valida as credenciais na nuvem
-        const foundUser = users.find(u => u.email.toLowerCase() === emailInput && u.password === passwordInput);
-
-        if (foundUser) {
-          localStorage.setItem('rg_logged', 'true');
-          localStorage.setItem('rg_user_email', foundUser.email);
-          window.location.href = 'index.html';
-        } else {
-          errorBox.textContent = 'Acesso negado: E-mail ou palavra-passe incorretos.';
-          errorBox.style.display = 'block';
-          submitBtn.disabled = false;
-          submitBtn.textContent = 'ENTRAR';
-        }
+        localStorage.setItem('rg_logged', 'true');
+        localStorage.setItem('rg_user_email', email);
+        window.location.href = 'index.html';
       } catch (err) {
-        console.error("Erro no login:", err);
-        errorBox.textContent = 'Erro de ligação ao Firebase. Verifique a rede.';
+        console.error("Erro no login Firebase Auth:", err);
+        let msg = 'E-mail ou palavra-passe incorretos.';
+        if (err.code === 'auth/invalid-email') {
+          msg = 'Formato de e-mail inválido.';
+        } else if (err.code === 'auth/too-many-requests') {
+          msg = 'Muitas tentativas falhadas. Tente novamente mais tarde.';
+        }
+        
+        errorBox.textContent = msg;
         errorBox.style.display = 'block';
         submitBtn.disabled = false;
         submitBtn.textContent = 'ENTRAR';
