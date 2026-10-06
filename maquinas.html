@@ -1,22 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
-
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore (Base de Dados) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<!-- Firebase Authentication (Autenticação) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Ficheiro de Inicialização -->
-<script src="firebase-init.js"></script>
+  <!-- Firebase SDKs e Sincronização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
 
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
@@ -29,16 +19,16 @@
   <header>
     <div class="nav-container">
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Laser Expert">
+        <img src="logo.png" alt="Logo">
       </a>
       <nav>
         <ul>
           <li><a href="index.html">Clientes</a></li>
           <li><a href="maquinas.html" class="active">Máquinas</a></li>
           <li><a href="novo-relatorio.html">Novo Relatório</a></li>
-<li><a href="historico.html">Histórico RS</a></li>
-<li><a href="orcamentos.html">Orçamentos</a></li>
-<li><a href="configuracao.html">Configuração</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="orcamentos.html">Orçamentos</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
           <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
         </ul>
       </nav>
@@ -52,7 +42,7 @@
         <div class="form-group">
           <label for="machineClient">Cliente / Empresa</label>
           <select id="machineClient" required>
-            <option value="">Selecione o cliente...</option>
+            <option value="">A carregar clientes...</option>
           </select>
         </div>
 
@@ -96,52 +86,82 @@
             </tr>
           </thead>
           <tbody id="machineTableBody">
-            <!-- Dados injetados via JavaScript -->
+            <tr><td colspan="5" style="text-align: center; color: #64748B;">A carregar máquinas da nuvem...</td></tr>
           </tbody>
         </table>
       </div>
     </section>
   </main>
 
-<footer>
-    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by  <strong>CS Code Solutions</strong></p>
+  <footer>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
     const clientSelect = document.getElementById('machineClient');
-    const clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
-    
-    clients.forEach(c => {
-      const option = document.createElement('option');
-      option.value = c.name;
-      option.textContent = c.name;
-      clientSelect.appendChild(option);
-    });
-
     const machineForm = document.getElementById('machineForm');
     const machineTableBody = document.getElementById('machineTableBody');
-    let machines = JSON.parse(localStorage.getItem('rg_machines')) || [];
+    
+    let machines = [];
+    let clients = [];
 
-    function renderMachines() {
-      machineTableBody.innerHTML = '';
-      if(machines.length === 0) {
-        machineTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748B;">Nenhuma máquina cadastrada.</td></tr>';
-        return;
+    async function loadDropdownClients() {
+      try {
+        clients = await DataSync.load('rg_clients') || [];
+        clientSelect.innerHTML = '<option value="">Selecione o cliente...</option>';
+        clients.forEach(c => {
+          const option = document.createElement('option');
+          option.value = c.name;
+          option.textContent = c.name;
+          clientSelect.appendChild(option);
+        });
+      } catch (e) {
+        console.error("Erro ao carregar clientes para o select", e);
       }
-      machines.forEach((m, index) => {
-        machineTableBody.innerHTML += `
-          <tr>
-            <td>${m.client}</td>
-            <td>${m.name}</td>
-            <td>${m.brand || '-'} / ${m.model || '-'}</td>
-            <td>${m.serial || '-'}</td>
-            <td><button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteMachine(${index})">Excluir</button></td>
-          </tr>
-        `;
-      });
     }
 
-    machineForm.addEventListener('submit', (e) => {
+    async function renderMachines() {
+      try {
+        machines = await DataSync.load('rg_machines') || [];
+        if (!Array.isArray(machines)) machines = [];
+
+        machineTableBody.innerHTML = '';
+        if (machines.length === 0) {
+          machineTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #64748B;">Nenhuma máquina cadastrada.</td></tr>';
+          return;
+        }
+
+        machines.forEach((m, index) => {
+          machineTableBody.innerHTML += `
+            <tr>
+              <td>${m.client}</td>
+              <td>${m.name}</td>
+              <td>${m.brand || '-'} / ${m.model || '-'}</td>
+              <td>${m.serial || '-'}</td>
+              <td><button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteMachine(${index})">Excluir</button></td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        console.error(err);
+        machineTableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar máquinas.</td></tr>';
+      }
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      await loadDropdownClients();
+      await renderMachines();
+
+      // Sincronização em tempo real
+      DataSync.listen('rg_machines', () => {
+        renderMachines();
+      });
+      DataSync.listen('rg_clients', () => {
+        loadDropdownClients();
+      });
+    });
+
+    machineForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const newMachine = {
         client: clientSelect.value,
@@ -150,19 +170,33 @@
         model: document.getElementById('machineModel').value,
         serial: document.getElementById('machineSerial').value
       };
-      machines.push(newMachine);
-      localStorage.setItem('rg_machines', JSON.stringify(machines));
-      machineForm.reset();
-      renderMachines();
+
+      try {
+        machines = await DataSync.load('rg_machines') || [];
+        if (!Array.isArray(machines)) machines = [];
+        
+        machines.push(newMachine);
+        await DataSync.save('rg_machines', machines);
+        machineForm.reset();
+        renderMachines();
+        alert('Máquina salva e sincronizada com sucesso!');
+      } catch (err) {
+        alert('Erro ao salvar máquina: ' + err.message);
+      }
     });
 
-    window.deleteMachine = function(index) {
-      machines.splice(index, 1);
-      localStorage.setItem('rg_machines', JSON.stringify(machines));
-      renderMachines();
-    }
-
-    renderMachines();
+    window.deleteMachine = async function(index) {
+      if (confirm('Deseja realmente excluir esta máquina?')) {
+        try {
+          machines = await DataSync.load('rg_machines') || [];
+          machines.splice(index, 1);
+          await DataSync.save('rg_machines', machines);
+          renderMachines();
+        } catch (err) {
+          alert('Erro ao excluir máquina.');
+        }
+      }
+    };
   </script>
 
 </body>
