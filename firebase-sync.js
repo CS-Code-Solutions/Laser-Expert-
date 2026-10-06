@@ -1,22 +1,22 @@
-// Módulo de Sincronização Automática entre LocalStorage e Firebase Firestore
+// Módulo avançado de Sincronização em Tempo Real (Firestore + LocalStorage)
 const DataSync = {
-  // Salvar dados (atualiza localmente e envia para a nuvem em segundo plano)
+  // Salvar dados (atualiza localmente e envia para o Firestore)
   async save(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
     try {
-      localStorage.setItem(key, JSON.stringify(data));
       if (typeof db !== 'undefined') {
         await db.collection('laser_expert_data').doc(key).set({
           content: data,
           updatedAt: new Date()
         });
-        console.log(`[Firebase] Sincronizado com sucesso: ${key}`);
+        console.log(`[Firebase Realtime] Dados salvos e sincronizados: ${key}`);
       }
     } catch (err) {
-      console.warn(`[Firebase] Modo offline ativado para ${key}:`, err);
+      console.warn(`[Firebase] Modo offline - dados salvos apenas localmente para ${key}:`, err);
     }
   },
 
-  // Carregar dados (tenta buscar da nuvem primeiro para atualizar entre dispositivos; se falhar, usa o local)
+  // Carregar dados (busca da nuvem ou fallback para o cache local)
   async load(key) {
     try {
       if (typeof db !== 'undefined') {
@@ -28,11 +28,27 @@ const DataSync = {
         }
       }
     } catch (err) {
-      console.warn(`[Firebase] A carregar do cache local para ${key}:`, err);
+      console.warn(`[Firebase] Erro ao carregar ${key}, a usar cache local:`, err);
     }
 
-    // Fallback para o localStorage caso esteja offline
     const local = localStorage.getItem(key);
     return local ? JSON.parse(local) : null;
+  },
+
+  // Ouvir alterações em tempo real na nuvem
+  listen(key, callback) {
+    try {
+      if (typeof db !== 'undefined') {
+        db.collection('laser_expert_data').doc(key).onSnapshot((doc) => {
+          if (doc.exists) {
+            const remoteData = doc.data().content;
+            localStorage.setItem(key, JSON.stringify(remoteData));
+            if (callback) callback(remoteData);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(`[Firebase] Erro ao ativar escuta em tempo real para ${key}:`, err);
+    }
   }
 };
