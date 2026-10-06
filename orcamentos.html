@@ -69,7 +69,6 @@
       position: relative;
     }
 
-    /* Marca d'água elegante em cada página */
     .watermark {
       position: absolute;
       top: 45%;
@@ -189,12 +188,12 @@
     </section>
   </main>
 
-  <!-- Modal de Pré-visualização com Opção Direta de Partilha -->
   <div id="budgetPreviewModal">
     <div class="modal-content-wrapper">
       <div class="action-toolbar">
         <div>
           <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
+          <span id="loadingStatusOrc" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
@@ -451,6 +450,13 @@
       document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
       document.getElementById('budgetRenderArea').innerHTML = htmlContent;
       document.getElementById('budgetPreviewModal').style.display = 'flex';
+
+      // Aguarda 900ms para renderizar perfeitamente no ecrã e abre o menu de partilha automaticamente
+      setTimeout(async () => {
+        const loadingStatus = document.getElementById('loadingStatusOrc');
+        if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
+        await sharePDF();
+      }, 900);
     };
 
     window.closeModal = function() {
@@ -484,11 +490,9 @@
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente.");
         }
       } catch (err) {
         console.error(err);
-        alert("Erro ao gerar o PDF: " + err.message);
       }
     };
   </script>
