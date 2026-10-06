@@ -1,22 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
-
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore (Base de Dados) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<!-- Firebase Authentication (Autenticação) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Ficheiro de Inicialização -->
-<script src="firebase-init.js"></script>
+  <!-- Firebase SDKs e Sincronização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
 
   <link rel="manifest" href="manifest.json">
   <meta charset="UTF-8">
@@ -36,9 +26,9 @@
           <li><a href="index.html" class="active">Clientes</a></li>
           <li><a href="maquinas.html">Máquinas</a></li>
           <li><a href="novo-relatorio.html">Novo Relatório</a></li>
-<li><a href="historico.html">Histórico RS</a></li>
-<li><a href="orcamentos.html">Orçamentos</a></li>
-<li><a href="configuracao.html">Configuração</a></li>
+          <li><a href="historico.html">Histórico RS</a></li>
+          <li><a href="orcamentos.html">Orçamentos</a></li>
+          <li><a href="configuracao.html">Configuração</a></li>
           <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
         </ul>
       </nav>
@@ -76,13 +66,13 @@
     <section class="card">
       <h2>Clientes Cadastrados</h2>
       <div id="clientListContainer" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
-        <!-- Dados injetados via JavaScript -->
+        <p style="text-align: center; color: #64748B;">A carregar clientes da nuvem...</p>
       </div>
     </section>
   </main>
 
   <footer>
-    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by  <strong>CS Code Solutions</strong></p>
+    <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
@@ -93,32 +83,49 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const editIndexInput = document.getElementById('editIndex');
 
-    let clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
+    let clients = [];
 
-    function renderClients() {
-      clientListContainer.innerHTML = '';
-      if(clients.length === 0) {
-        clientListContainer.innerHTML = '<p style="text-align: center; color: #64748B;">Nenhum cliente cadastrado.</p>';
-        return;
+    async function renderClients() {
+      try {
+        clients = await DataSync.load('rg_clients') || [];
+        if (!Array.isArray(clients)) clients = [];
+
+        clientListContainer.innerHTML = '';
+        if (clients.length === 0) {
+          clientListContainer.innerHTML = '<p style="text-align: center; color: #64748B;">Nenhum cliente cadastrado.</p>';
+          return;
+        }
+
+        clients.forEach((c, index) => {
+          clientListContainer.innerHTML += `
+            <div style="border: 1px solid #CBD5E1; padding: 15px; border-radius: 6px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <strong style="font-size: 1.05rem; color: #0B132B;">${c.name}</strong><br>
+                <span style="font-size: 0.9rem; color: #475569;">Documento: ${c.doc} | E-mail: ${c.email || '-'}</span><br>
+                <span style="font-size: 0.9rem; color: #475569;">Endereço: ${c.address || '-'}</span>
+              </div>
+              <div style="display: flex; gap: 5px;">
+                <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #F59E0B;" onclick="editClient(${index})">Editar</button>
+                <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #EF4444;" onclick="deleteClient(${index})">Excluir</button>
+              </div>
+            </div>
+          `;
+        });
+      } catch (err) {
+        console.error(err);
+        clientListContainer.innerHTML = '<p style="text-align: center; color: red;">Erro ao carregar clientes.</p>';
       }
-      clients.forEach((c, index) => {
-        clientListContainer.innerHTML += `
-          <div style="border: 1px solid #CBD5E1; padding: 15px; border-radius: 6px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
-            <div>
-              <strong style="font-size: 1.05rem; color: #0B132B;">${c.name}</strong><br>
-              <span style="font-size: 0.9rem; color: #475569;">Documento: ${c.doc} | E-mail: ${c.email || '-'}</span><br>
-              <span style="font-size: 0.9rem; color: #475569;">Endereço: ${c.address || '-'}</span>
-            </div>
-            <div style="display: flex; gap: 5px;">
-              <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #F59E0B;" onclick="editClient(${index})">Editar</button>
-              <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #EF4444;" onclick="deleteClient(${index})">Excluir</button>
-            </div>
-          </div>
-        `;
-      });
     }
 
-    form.addEventListener('submit', (e) => {
+    document.addEventListener("DOMContentLoaded", async () => {
+      await renderClients();
+      // Ativa escuta em tempo real no Firestore para Clientes
+      DataSync.listen('rg_clients', () => {
+        renderClients();
+      });
+    });
+
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const editIdx = editIndexInput.value;
       
@@ -129,19 +136,28 @@
         address: document.getElementById('clientAddress').value
       };
 
-      if(editIdx === "") {
-        clients.push(clientData);
-      } else {
-        clients[editIdx] = clientData;
-      }
+      try {
+        clients = await DataSync.load('rg_clients') || [];
+        if (!Array.isArray(clients)) clients = [];
 
-      localStorage.setItem('rg_clients', JSON.stringify(clients));
-      resetForm();
-      renderClients();
+        if (editIdx === "") {
+          clients.push(clientData);
+        } else {
+          clients[editIdx] = clientData;
+        }
+
+        await DataSync.save('rg_clients', clients);
+        resetForm();
+        renderClients();
+        alert('Cliente salvo e sincronizado com sucesso!');
+      } catch (err) {
+        alert('Erro ao salvar cliente: ' + err.message);
+      }
     });
 
     window.editClient = function(index) {
       const c = clients[index];
+      if (!c) return;
       document.getElementById('clientName').value = c.name;
       document.getElementById('clientEmail').value = c.email || '';
       document.getElementById('clientDoc').value = c.doc;
@@ -152,7 +168,7 @@
       saveBtn.textContent = "Atualizar Cliente";
       cancelBtn.style.display = 'inline-block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    };
 
     window.resetForm = function() {
       form.reset();
@@ -160,17 +176,20 @@
       formTitle.textContent = "Adicionar Novo Cliente";
       saveBtn.textContent = "Salvar Cliente";
       cancelBtn.style.display = 'none';
-    }
+    };
 
-    window.deleteClient = function(index) {
-      if(confirm('Deseja realmente excluir este cliente?')) {
-        clients.splice(index, 1);
-        localStorage.setItem('rg_clients', JSON.stringify(clients));
-        renderClients();
+    window.deleteClient = async function(index) {
+      if (confirm('Deseja realmente excluir este cliente?')) {
+        try {
+          clients = await DataSync.load('rg_clients') || [];
+          clients.splice(index, 1);
+          await DataSync.save('rg_clients', clients);
+          renderClients();
+        } catch (err) {
+          alert('Erro ao excluir cliente.');
+        }
       }
-    }
-
-    renderClients();
+    };
   </script>
 
 </body>
