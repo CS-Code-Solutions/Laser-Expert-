@@ -183,7 +183,7 @@
                 <input type="checkbox" id="checkNotIncluded" checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;" onchange="atualizarTermosCompletos()">
                 <span style="font-weight: bold;">Não estão inclusos:</span>
               </label>
-              <textarea id="orcNotIncludedText" rows="2" class="form-control" placeholder="Ex: óleos, peças e espelhos." style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; font-size: 11px;" oninput="atualizarTermosCompletos()">óleos, peças e espelhos.</textarea>
+              <textarea id="orcNotIncludedText" rows="2" class="form-control" placeholder="óleos, peças, espelhos" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; font-size: 11px;" oninput="atualizarTermosCompletos()">óleos, peças, espelhos</textarea>
             </div>
 
             <label for="orcTerms" style="margin-top: 8px; display: block;"><strong>Resumo das Condições Comerciais:</strong></label>
@@ -254,11 +254,11 @@
 
       const checkNotInc = document.getElementById('checkNotIncluded');
       const textNotInc = document.getElementById('orcNotIncludedText');
-      if (checkNotInc && checkNotInc.checked && textNotInc && textNotInc.value.trim() !== '') {
-        selecionados.push(`Não estão inclusos: ${textNotInc.value.trim()}`);
+      if (checkNotInc && checkNotInc.checked && textNotInc) {
+        const val = textNotInc.value.trim() !== '' ? textNotInc.value.trim() : textNotInc.placeholder;
+        selecionados.push(`Não estão inclusos: ${val}`);
       }
 
-      // Cada item é separado por uma nova linha (\n)
       document.getElementById('orcTerms').value = selecionados.join('\n');
     }
 
@@ -373,7 +373,7 @@
       
       document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
       document.getElementById('checkNotIncluded').checked = true;
-      document.getElementById('orcNotIncludedText').value = "óleos, peças e espelhos.";
+      document.getElementById('orcNotIncludedText').value = "óleos, peças, espelhos";
       atualizarTermosCompletos();
 
       try {
@@ -411,6 +411,7 @@
           }
         } else {
           document.getElementById('checkNotIncluded').checked = false;
+          document.getElementById('orcNotIncludedText').value = "";
         }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -455,132 +456,65 @@
       let clients = await DataSync.load('rg_clients') || [];
       const clientObj = clients.find(c => c.name === b.client) || {};
 
-      activeBudgetData = { number: b.number, client: b.client, total: Number(b.total || 0).toFixed(2) };
+      activeBudgetData = b;
+      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number || 'ORC-0001'}`;
+      document.getElementById('loadingStatusOrc').textContent = '⏳ A preparar visualização...';
 
-      const htmlContent = `
+      const termsList = (b.terms || '').split('\n').map(t => `<p>• ${t}</p>`).join('');
+
+      const renderArea = document.getElementById('budgetRenderArea');
+      renderArea.innerHTML = `
         <div class="print-body">
           <div class="watermark">LASER EXPERT</div>
-
           <div class="print-header">
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
-              <h1>ORÇAMENTO DE SERVIÇOS E PEÇAS</h1>
-              <p><strong>Nº do Orçamento:</strong> ${b.number} | <strong>Data:</strong> ${b.date}</p>
+              <h1>${config.name}</h1>
+              <p>CNPJ: ${config.doc}</p>
+              <p>${config.location}</p>
+              <p>Email: ${config.email} | Tel: ${config.contact}</p>
             </div>
           </div>
 
           <div class="section-box">
-            <div class="section-title">Dados da Empresa</div>
+            <div class="section-title">DADOS DO ORÇAMENTO E CLIENTE</div>
             <div class="grid-2">
-              <p><strong>Razão Social:</strong> ${config.name}</p>
-              <p><strong>CNPJ:</strong> ${config.doc}</p>
-              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
-              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
-              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
+              <div>
+                <p><strong>Nº Orçamento:</strong> ${b.number || '-'}</p>
+                <p><strong>Data:</strong> ${b.date || '-'}</p>
+                <p><strong>Cliente:</strong> ${b.client || '-'}</p>
+                <p><strong>CNPJ/CPF:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
+              </div>
+              <div>
+                <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
+                <p><strong>Morada:</strong> ${clientObj.address || clientObj.morada || '-'}</p>
+                <p><strong>Contacto:</strong> ${clientObj.phone || clientObj.telefone || '-'}</p>
+              </div>
             </div>
           </div>
 
           <div class="section-box">
-            <div class="section-title">Dados do Cliente</div>
-            <div class="grid-2">
-              <p><strong>Cliente / Razão Social:</strong> ${b.client}</p>
-              <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
-              <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
-              <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
-            </div>
+            <div class="section-title">ESCOPO DOS SERVIÇOS</div>
+            <p style="white-space: pre-wrap; margin-top: 5px;">${b.desc || '-'}</p>
           </div>
 
           <div class="section-box">
-            <div class="section-title">Equipamento / Máquina</div>
-            <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
+            <div class="section-title">CONDIÇÕES COMERCIAIS</div>
+            ${termsList}
           </div>
 
-          <div class="section-box">
-            <div class="section-title">Escopo dos Serviços / Peças</div>
-            <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
-          </div>
-
-          <div class="section-box">
-            <div class="section-title">Condições Comerciais</div>
-            <p style="white-space: pre-wrap; margin-bottom: 6px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
-            <div style="background: #E2E8F0; padding: 8px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 13px; color: #0B132B;">
-              VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
-            </div>
-          </div>
-
-          <div style="margin-top: 20px; text-align: right; page-break-inside: avoid;">
-            <p>________________________________________</p>
-            <p><strong>Otávio Barbosa</strong></p>
-            <p style="font-size: 10px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
+          <div class="section-box" style="text-align: right; background: #F1F5F9;">
+            <p style="font-size: 14px; font-weight: bold; color: var(--deep-navy);">VALOR TOTAL: R$ ${Number(b.total || 0).toFixed(2)}</p>
           </div>
         </div>
       `;
 
-      document.getElementById('modalTitleOrc').textContent = `Orçamento - ${b.number} (${b.client})`;
-      document.getElementById('budgetRenderArea').innerHTML = htmlContent;
+      document.getElementById('loadingStatusOrc').textContent = '✅ Pronto';
       document.getElementById('budgetPreviewModal').style.display = 'flex';
-
-      setTimeout(async () => {
-        const loadingStatus = document.getElementById('loadingStatusOrc');
-        if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
-        await sharePDF();
-      }, 1800);
     };
 
     window.closeModal = function() {
       document.getElementById('budgetPreviewModal').style.display = 'none';
-    };
-
-    window.sharePDF = async function() {
-      const element = document.getElementById('budgetRenderArea');
-      if (!element) return;
-
-      const scrollContainer = document.getElementById('budgetScrollContainer');
-      const originalOverflow = scrollContainer ? scrollContainer.style.overflow : '';
-      const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
-      
-      if (scrollContainer) {
-        scrollContainer.style.overflow = 'visible';
-        scrollContainer.style.maxHeight = 'none';
-      }
-
-      const filename = `Orcamento_${activeBudgetData.number}_${activeBudgetData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
-      const opt = {
-        margin:       5,
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      try {
-        const worker = html2pdf().from(element).set(opt);
-        const pdfBlob = await worker.outputPdf('blob');
-        
-        if (scrollContainer) {
-          scrollContainer.style.overflow = originalOverflow;
-          scrollContainer.style.maxHeight = originalMaxHeight;
-        }
-
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-          await navigator.share({
-            title: `Orçamento ${activeBudgetData.number}`,
-            text: `Segue o Orçamento ${activeBudgetData.number} (${activeBudgetData.client}). Valor total: R$ ${activeBudgetData.total}`,
-            files: [pdfFile]
-          });
-        } else {
-          worker.save();
-        }
-      } catch (err) {
-        if (scrollContainer) {
-          scrollContainer.style.overflow = originalOverflow;
-          scrollContainer.style.maxHeight = originalMaxHeight;
-        }
-        console.error(err);
-      }
     };
   </script>
 
