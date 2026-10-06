@@ -1,32 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<!-- Firebase Core & Firestore -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Inicialização e Sincronização -->
-<script src="firebase-init.js"></script>
-<script src="firebase-sync.js"></script>
+  <!-- Firebase SDKs e Sincronização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="firebase-init.js"></script>
+  <script src="firebase-sync.js"></script>
 
-<!-- Firebase App (Core) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<!-- Firebase Firestore (Base de Dados) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-<!-- Firebase Authentication (Autenticação) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<!-- Ficheiro de Inicialização -->
-<script src="firebase-init.js"></script>
-
-    <link rel="icon" href="img/ico1.png" type="image/png">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Laser Expert - Novo Relatório de Serviço</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0B132B">
-    <!-- Signature Pad CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <link rel="icon" href="img/ico1.png" type="image/png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laser Expert - Novo Relatório de Serviço</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0B132B">
+  <!-- Signature Pad CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
 </head>
 <body>
 
@@ -41,10 +31,9 @@
           <li><a href="maquinas.html">Máquinas</a></li>
           <li><a href="novo-relatorio.html" class="active">Novo Relatório</a></li>
           <li><a href="historico.html">Histórico RS</a></li>
-<li><a href="orcamentos.html">Orçamentos</a></li>
+          <li><a href="orcamentos.html">Orçamentos</a></li>
           <li><a href="configuracao.html">Configuração</a></li>
           <li><a href="login.html" onclick="localStorage.removeItem('rg_logged')" style="color: var(--danger); font-weight: bold;">Sair</a></li>
-<li</a></li>
         </ul>
       </nav>
     </div>
@@ -59,7 +48,7 @@
         <div class="form-group">
           <label for="reportClient">Cliente / Empresa</label>
           <select id="reportClient" required>
-            <option value="">Selecione um cliente...</option>
+            <option value="">A carregar clientes...</option>
           </select>
         </div>
 
@@ -348,20 +337,131 @@
     let clients = [];
     let machines = [];
     let reports = [];
+    let config = { nextRs: '1001', tech: 'Otávio Barbosa' };
 
-    try {
-        clients = JSON.parse(localStorage.getItem('rg_clients')) || [];
-        machines = JSON.parse(localStorage.getItem('rg_machines')) || [];
-        reports = JSON.parse(localStorage.getItem('rg_reports')) || [];
-    } catch (e) {
-        console.error("Erro ao carregar dados", e);
+    const techCanvas = document.getElementById('tech-pad');
+    const clientCanvas = document.getElementById('client-pad');
+    const techPad = new SignaturePad(techCanvas);
+    const clientPad = new SignaturePad(clientCanvas);
+
+    function resizeCanvases() {
+      const ratio = Math.max(window.devicePixelRatio || 1, 1);
+      techCanvas.width = techCanvas.offsetWidth * ratio;
+      techCanvas.height = techCanvas.offsetHeight * ratio;
+      techCanvas.getContext("2d").scale(ratio, ratio);
+      techPad.clear();
+
+      clientCanvas.width = clientCanvas.offsetWidth * ratio;
+      clientCanvas.height = clientCanvas.offsetHeight * ratio;
+      clientCanvas.getContext("2d").scale(ratio, ratio);
+      clientPad.clear();
     }
+    window.addEventListener("resize", resizeCanvases);
+    resizeCanvases();
 
-    clients.forEach(c => {
-      const option = document.createElement('option');
-      option.value = c.name;
-      option.textContent = `${c.name} (${c.doc || c.cnpj || 'Sem doc'})`;
-      clientSelect.appendChild(option);
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        clients = await DataSync.load('rg_clients') || [];
+        machines = await DataSync.load('rg_machines') || [];
+        reports = await DataSync.load('rg_reports') || [];
+        const cfgData = await DataSync.load('rg_config');
+        if (cfgData) config = cfgData;
+      } catch (e) {
+        console.error("Erro ao carregar dados da nuvem", e);
+      }
+
+      clientSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
+      clients.forEach(c => {
+        const option = document.createElement('option');
+        option.value = c.name;
+        option.textContent = `${c.name} (${c.doc || c.cnpj || 'Sem doc'})`;
+        clientSelect.appendChild(option);
+      });
+
+      techNameInput.value = config.tech || config.name || '';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const editIndex = urlParams.get('edit');
+
+      if (editIndex !== null && reports[editIndex]) {
+        document.getElementById('pageTitle').textContent = "Editar Relatório de Serviço (RS)";
+        document.getElementById('submitBtn').textContent = "Atualizar Relatório";
+        const rep = reports[editIndex];
+        clientSelect.value = rep.client;
+        clientSelect.dispatchEvent(new Event('change'));
+
+        equipmentInput.value = rep.equipment || '';
+        brandInput.value = rep.brand || '';
+        modelInput.value = rep.model || '';
+        serialInput.value = rep.serialNumber || '';
+        reportNumberInput.value = rep.number;
+        reportDateInput.value = rep.date;
+        document.getElementById('service-nature').value = rep.serviceNature || 'Manutenção Corretiva';
+        document.getElementById('service-area').value = rep.serviceArea || 'Elétrica';
+        techNameInput.value = rep.technician || config.tech || '';
+        document.getElementById('description').value = rep.desc || '';
+        document.getElementById('payment-terms').value = rep.paymentTerms || '';
+
+        if (rep.temEmpreitada) {
+            document.getElementById('tem-empreitada').value = rep.temEmpreitada;
+            document.getElementById('bloco-empreitada').style.display = rep.temEmpreitada === 'sim' ? 'block' : 'none';
+            document.getElementById('bloco-horas-geral').style.display = rep.temEmpreitada === 'sim' ? 'none' : 'block';
+        }
+        document.getElementById('valor-empreitada').value = rep.valorEmpreitada || '';
+
+        if (rep.temHora) {
+            document.getElementById('tem-hora').value = rep.temHora;
+            document.getElementById('bloco-turnos').style.display = rep.temHora === 'sim' ? 'block' : 'none';
+        }
+        document.getElementById('valor-hora').value = rep.valorHora || '200.00';
+        document.getElementById('time-start-manha').value = rep.startManha || '';
+        document.getElementById('time-end-manha').value = rep.endManha || '';
+        document.getElementById('time-start-tarde').value = rep.startTarde || '';
+        document.getElementById('time-end-tarde').value = rep.endTarde || '';
+
+        if (rep.temKm) {
+            document.getElementById('tem-km').value = rep.temKm;
+            document.getElementById('bloco-km').style.display = rep.temKm === 'sim' ? 'block' : 'none';
+        }
+        document.getElementById('valor-km').value = rep.valorKm || '';
+        document.getElementById('km-ida').value = rep.kmIda || '';
+        document.getElementById('km-volta').value = rep.kmVolta || '';
+
+        if (rep.temCombustivel) {
+            document.getElementById('tem-combustivel').value = rep.temCombustivel;
+            document.getElementById('bloco-combustivel').style.display = rep.temCombustivel === 'sim' ? 'block' : 'none';
+        }
+        document.getElementById('valor-litro').value = rep.valorLitro || '';
+        document.getElementById('combustivel-litros').value = rep.combustivelLitros || '';
+
+        if (rep.temDespesas) {
+            document.getElementById('tem-despesas').value = rep.temDespesas;
+            document.getElementById('bloco-despesas').style.display = rep.temDespesas === 'sim' ? 'block' : 'none';
+        }
+        document.getElementById('valor-adicional').value = rep.valorAdicional || '';
+
+        if (rep.anexos && rep.anexos.length > 0) {
+            const container = document.getElementById('container-anexos');
+            container.innerHTML = '';
+            rep.anexos.forEach(anexo => {
+                const novaLinha = document.createElement('div');
+                novaLinha.className = 'anexo-row';
+                novaLinha.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;';
+                novaLinha.innerHTML = `
+                    <input type="text" value="${anexo.titulo || ''}" placeholder="Descrição da foto" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
+                    <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
+                    <input type="hidden" class="anexo-existing" value="${anexo.imagem || ''}">
+                    <button type="button" onclick="this.parentElement.remove()" class="btn" style="background: #EF4444; padding: 6px 10px; font-size: 0.8rem;">X</button>
+                `;
+                container.appendChild(novaLinha);
+            });
+        }
+
+        if (reports[editIndex].techSignature) techPad.fromDataURL(reports[editIndex].techSignature);
+        if (reports[editIndex].signature) clientPad.fromDataURL(reports[editIndex].signature);
+      } else {
+        reportNumberInput.value = `RS-${config.nextRs || '1001'}`;
+      }
     });
 
     clientSelect.addEventListener('change', () => {
@@ -391,118 +491,6 @@
       }
     });
 
-    let config = { nextRs: '1001', tech: 'Otávio Barbosa' };
-    try {
-        const cfgData = localStorage.getItem('rg_config');
-        if (cfgData) config = JSON.parse(cfgData);
-    } catch (e) {}
-    techNameInput.value = config.tech || config.name || '';
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const editIndex = urlParams.get('edit');
-
-    if (editIndex !== null && reports[editIndex]) {
-      document.getElementById('pageTitle').textContent = "Editar Relatório de Serviço (RS)";
-      document.getElementById('submitBtn').textContent = "Atualizar Relatório";
-      const rep = reports[editIndex];
-      clientSelect.value = rep.client;
-      clientSelect.dispatchEvent(new Event('change'));
-
-      equipmentInput.value = rep.equipment || '';
-      brandInput.value = rep.brand || '';
-      modelInput.value = rep.model || '';
-      serialInput.value = rep.serialNumber || '';
-      reportNumberInput.value = rep.number;
-      reportDateInput.value = rep.date;
-      document.getElementById('service-nature').value = rep.serviceNature || 'Manutenção Corretiva';
-      document.getElementById('service-area').value = rep.serviceArea || 'Elétrica';
-      techNameInput.value = rep.technician || config.tech || '';
-      document.getElementById('description').value = rep.desc || '';
-      document.getElementById('payment-terms').value = rep.paymentTerms || '';
-
-      if (rep.temEmpreitada) {
-          document.getElementById('tem-empreitada').value = rep.temEmpreitada;
-          document.getElementById('bloco-empreitada').style.display = rep.temEmpreitada === 'sim' ? 'block' : 'none';
-          document.getElementById('bloco-horas-geral').style.display = rep.temEmpreitada === 'sim' ? 'none' : 'block';
-      }
-      document.getElementById('valor-empreitada').value = rep.valorEmpreitada || '';
-
-      if (rep.temHora) {
-          document.getElementById('tem-hora').value = rep.temHora;
-          document.getElementById('bloco-turnos').style.display = rep.temHora === 'sim' ? 'block' : 'none';
-      }
-      document.getElementById('valor-hora').value = rep.valorHora || '200.00';
-      document.getElementById('time-start-manha').value = rep.startManha || '';
-      document.getElementById('time-end-manha').value = rep.endManha || '';
-      document.getElementById('time-start-tarde').value = rep.startTarde || '';
-      document.getElementById('time-end-tarde').value = rep.endTarde || '';
-
-      if (rep.temKm) {
-          document.getElementById('tem-km').value = rep.temKm;
-          document.getElementById('bloco-km').style.display = rep.temKm === 'sim' ? 'block' : 'none';
-      }
-      document.getElementById('valor-km').value = rep.valorKm || '';
-      document.getElementById('km-ida').value = rep.kmIda || '';
-      document.getElementById('km-volta').value = rep.kmVolta || '';
-
-      if (rep.temCombustivel) {
-          document.getElementById('tem-combustivel').value = rep.temCombustivel;
-          document.getElementById('bloco-combustivel').style.display = rep.temCombustivel === 'sim' ? 'block' : 'none';
-      }
-      document.getElementById('valor-litro').value = rep.valorLitro || '';
-      document.getElementById('combustivel-litros').value = rep.combustivelLitros || '';
-
-      if (rep.temDespesas) {
-          document.getElementById('tem-despesas').value = rep.temDespesas;
-          document.getElementById('bloco-despesas').style.display = rep.temDespesas === 'sim' ? 'block' : 'none';
-      }
-      document.getElementById('valor-adicional').value = rep.valorAdicional || '';
-
-      if (rep.anexos && rep.anexos.length > 0) {
-          const container = document.getElementById('container-anexos');
-          container.innerHTML = '';
-          rep.anexos.forEach(anexo => {
-              const novaLinha = document.createElement('div');
-              novaLinha.className = 'anexo-row';
-              novaLinha.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;';
-              novaLinha.innerHTML = `
-                  <input type="text" value="${anexo.titulo || ''}" placeholder="Descrição da foto" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
-                  <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
-                  <input type="hidden" class="anexo-existing" value="${anexo.imagem || ''}">
-                  <button type="button" onclick="this.parentElement.remove()" class="btn" style="background: #EF4444; padding: 6px 10px; font-size: 0.8rem;">X</button>
-              `;
-              container.appendChild(novaLinha);
-          });
-      }
-    } else {
-      reportNumberInput.value = `RS-${config.nextRs || '1001'}`;
-    }
-
-    const techCanvas = document.getElementById('tech-pad');
-    const clientCanvas = document.getElementById('client-pad');
-    const techPad = new SignaturePad(techCanvas);
-    const clientPad = new SignaturePad(clientCanvas);
-
-    function resizeCanvases() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      techCanvas.width = techCanvas.offsetWidth * ratio;
-      techCanvas.height = techCanvas.offsetHeight * ratio;
-      techCanvas.getContext("2d").scale(ratio, ratio);
-      techPad.clear();
-
-      clientCanvas.width = clientCanvas.offsetWidth * ratio;
-      clientCanvas.height = clientCanvas.offsetHeight * ratio;
-      clientCanvas.getContext("2d").scale(ratio, ratio);
-      clientPad.clear();
-    }
-    window.addEventListener("resize", resizeCanvases);
-    resizeCanvases();
-
-    if (editIndex !== null && reports[editIndex]) {
-      if (reports[editIndex].techSignature) techPad.fromDataURL(reports[editIndex].techSignature);
-      if (reports[editIndex].signature) clientPad.fromDataURL(reports[editIndex].signature);
-    }
-
     document.getElementById('clear-tech').addEventListener('click', () => techPad.clear());
     document.getElementById('clear-client').addEventListener('click', () => clientPad.clear());
 
@@ -523,6 +511,9 @@
         alert("Por favor, recolha a assinatura do cliente.");
         return;
       }
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const editIndex = urlParams.get('edit');
 
       const anexoRows = document.querySelectorAll('.anexo-row');
       const anexosList = [];
@@ -593,31 +584,25 @@
         signature: clientPad.toDataURL()
       };
 
-      let currentReports = [];
       try {
-          currentReports = JSON.parse(localStorage.getItem('rg_reports')) || [];
+          let currentReports = await DataSync.load('rg_reports') || [];
+          if (!Array.isArray(currentReports)) currentReports = [];
+
+          if (editIndex !== null && currentReports[editIndex]) {
+            currentReports[editIndex] = reportData;
+          } else {
+            currentReports.push(reportData);
+            let nextNum = parseInt(config.nextRs || '1001') + 1;
+            config.nextRs = nextNum.toString();
+            await DataSync.save('rg_config', config);
+          }
+
+          await DataSync.save('rg_reports', currentReports);
+          alert('Relatório de Serviço guardado e sincronizado com sucesso!');
+          window.location.href = 'historico.html';
       } catch (err) {
-          currentReports = [];
+          alert('Erro ao guardar: ' + err.message);
       }
-
-      if (editIndex !== null && currentReports[editIndex]) {
-        currentReports[editIndex] = reportData;
-      } else {
-        currentReports.push(reportData);
-        let nextNum = parseInt(config.nextRs || '1001') + 1;
-        config.nextRs = nextNum.toString();
-        localStorage.setItem('rg_config', JSON.stringify(config));
-      }
-
-      try {
-          localStorage.setItem('rg_reports', JSON.stringify(currentReports));
-      } catch (err) {
-          alert('Erro ao guardar: O espaço de armazenamento do navegador ficou cheio devido ao tamanho ou quantidade das fotos anexadas. Tente usar imagens menores.');
-          return;
-      }
-
-      alert('Relatório de Serviço guardado com sucesso!');
-      window.location.href = 'historico.html';
     });
   </script>
 
