@@ -157,12 +157,27 @@
           </div>
           <div>
             <label><strong>Condições Comerciais (Opções Rápidas):</strong></label>
-            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 8px; border-radius: 4px; margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;">
-              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Pagamento a combinar." checked> Pagamento a combinar.</label>
-              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Impostos inclusos." checked> Impostos inclusos.</label>
-              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked> Despesas com deslocamento, alimentação e hotel já incluso no orçamento.</label>
-              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked> Deixar um cilindro de gás laser cheio para testes.</label>
-              <label style="font-size: 11px; cursor: pointer;"><input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked> Não estão inclusos, óleos, peças e espelhos.</label>
+            <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
+                <input type="checkbox" class="term-check" value="Pagamento a combinar." checked style="margin-top: 2px; flex-shrink: 0;">
+                <span>Pagamento a combinar.</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
+                <input type="checkbox" class="term-check" value="Impostos inclusos." checked style="margin-top: 2px; flex-shrink: 0;">
+                <span>Impostos inclusos.</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
+                <input type="checkbox" class="term-check" value="Despesas com deslocamento, alimentação e hotel já incluso no orçamento." checked style="margin-top: 2px; flex-shrink: 0;">
+                <span>Despesas com deslocamento, alimentação e hotel já incluso no orçamento.</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
+                <input type="checkbox" class="term-check" value="Deixar um cilindro de gás laser cheio para testes." checked style="margin-top: 2px; flex-shrink: 0;">
+                <span>Deixar um cilindro de gás laser cheio para testes.</span>
+              </label>
+              <label style="display: flex; align-items: flex-start; gap: 8px; font-size: 11px; cursor: pointer; margin: 0;">
+                <input type="checkbox" class="term-check" value="Não estão inclusos, óleos, peças e espelhos." checked style="margin-top: 2px; flex-shrink: 0;">
+                <span>Não estão inclusos, óleos, peças e espelhos.</span>
+              </label>
             </div>
             <label for="orcTerms"><strong>Texto / Condições Comerciais Personalizadas:</strong></label>
             <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
@@ -206,7 +221,7 @@
           <span id="loadingStatusOrc" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️️ Fechar</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖ Fechar</button>
         </div>
       </div>
       <div class="report-scroll-container" id="budgetScrollContainer">
@@ -236,7 +251,6 @@
       cb.addEventListener('change', atualizarTermosPorCheckboxes);
     });
 
-    // Inicializa o campo ao carregar
     atualizarTermosPorCheckboxes();
 
     async function loadClientsSelect() {
@@ -346,7 +360,6 @@
       document.getElementById('formTitle').textContent = 'Novo Orçamento';
       document.getElementById('orcDate').valueAsDate = new Date();
       
-      // Reseta checkboxes e texto padrão
       document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
       atualizarTermosPorCheckboxes();
 
@@ -372,7 +385,6 @@
         document.getElementById('orcTotal').value = b.total;
         document.getElementById('orcTerms').value = b.terms;
 
-        // Tenta marcar as checkboxes correspondentes se o texto contiver as frases
         const currentTerms = b.terms || '';
         document.querySelectorAll('.term-check').forEach(cb => {
           cb.checked = currentTerms.includes(cb.value);
