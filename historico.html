@@ -71,7 +71,7 @@
       position: relative;
     }
 
-    /* Marca d'água sucinta e elegante repetida por página no RS */
+    /* Marca d'água sucinta e elegante */
     .watermark {
       position: fixed;
       top: 50%;
@@ -87,7 +87,7 @@
       text-transform: uppercase;
     }
 
-    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; }
+    .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; position: relative; z-index: 1; box-sizing: border-box; }
     .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
     .print-header img { height: 50px; width: auto; }
     .print-header-info { text-align: right; }
@@ -146,32 +146,11 @@
     </section>
   </main>
 
-  <div id="reportPreviewModal">
-    <div class="modal-content-wrapper">
-      <div class="action-toolbar">
-        <div>
-          <strong id="modalTitleRs" style="color: var(--electric-cyan); font-size: 1rem;">Relatório de Serviço</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar...</span>
-        </div>
-        <div class="toolbar-buttons">
-          <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
-          <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
-        </div>
-      </div>
-      <div class="report-scroll-container">
-        <div id="reportRenderArea"></div>
-      </div>
-    </div>
-  </div>
-
   <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
-    let activeReportData = {};
-
     async function renderHistory() {
       const historyTableBody = document.getElementById('historyTableBody');
       if (!historyTableBody) return;
@@ -261,6 +240,18 @@
         return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
     }
 
+    function waitForImages(container) {
+      const imgs = container.querySelectorAll('img');
+      const promises = Array.from(imgs).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        });
+      });
+      return Promise.all(promises);
+    }
+
     window.openReportPreview = async function(index) {
       let reports = await DataSync.load('rg_reports') || [];
       const rep = reports[index];
@@ -314,7 +305,6 @@
       }
 
       const valorTotalStr = valorTotal.toFixed(2);
-      activeReportData = { number: rep.number, client: rep.client, total: valorTotalStr };
 
       let pixPayload = "";
       let qrCodeUrl = "";
@@ -367,11 +357,13 @@
         `;
       }
 
-      const fullReportHtml = `
-        <div class="print-body">
-          <!-- MARCA D'ÁGUA SUCINTA NO RS -->
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.innerHTML = `
+        <div class="print-body" style="background: white; padding: 20px;">
           <div class="watermark">LASER EXPERT</div>
-
           <div class="print-header">
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
@@ -453,27 +445,11 @@
           ${anexosHtml}
         </div>
       `;
+      document.body.appendChild(tempContainer);
 
-      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
-      document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
-      document.getElementById('loadingStatus').style.display = 'inline';
-      document.getElementById('reportPreviewModal').style.display = 'flex';
+      await waitForImages(tempContainer);
 
-      setTimeout(() => {
-        document.getElementById('loadingStatus').style.display = 'none';
-      }, 1200);
-    };
-
-    window.closeModal = function() {
-      document.getElementById('reportPreviewModal').style.display = 'none';
-    };
-
-    window.sharePDF = async function() {
-      const element = document.getElementById('reportRenderArea');
-      if (!element) return;
-
-      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
+      const filename = `RS_${rep.number}_${rep.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
       const opt = {
         margin:       10,
         filename:     filename,
@@ -483,21 +459,22 @@
       };
 
       try {
-        const worker = html2pdf().from(element).set(opt);
+        const worker = html2pdf().from(tempContainer).set(opt);
         const pdfBlob = await worker.outputPdf('blob');
         const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        document.body.removeChild(tempContainer);
 
         if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
           await navigator.share({
-            title: `Relatório de Serviço ${activeReportData.number}`,
-            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
+            title: `Relatório de Serviço ${rep.number}`,
+            text: `Segue o Relatório de Serviço ${rep.number} (${rep.client}). Valor total: R$ ${valorTotalStr}`,
             files: [pdfFile]
           });
         } else {
           worker.save();
-          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
         }
       } catch (err) {
+        if (document.body.contains(tempContainer)) document.body.removeChild(tempContainer);
         console.error(err);
         alert("Erro ao gerar o PDF: " + err.message);
       }
