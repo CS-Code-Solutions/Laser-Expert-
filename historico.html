@@ -17,7 +17,6 @@
       .page-break { page-break-before: always; }
     }
 
-    /* Modal de Pré-visualização Visível */
     #reportPreviewModal {
       display: none;
       position: fixed;
@@ -63,7 +62,6 @@
       flex: 1;
     }
 
-    /* Estilos do Relatório */
     .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 12px; }
     .print-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #00F5D4; padding-bottom: 10px; margin-bottom: 15px; }
     .print-header img { height: 50px; width: auto; }
@@ -122,7 +120,6 @@
     </section>
   </main>
 
-  <!-- Modal de Pré-visualização Visível -->
   <div id="reportPreviewModal">
     <div class="modal-content-wrapper">
       <div class="action-toolbar">
@@ -133,11 +130,10 @@
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
           <button class="btn" style="background-color: #F59E0B; padding: 6px 12px; font-size: 0.85rem;" onclick="window.print()">🖨️ Imprimir</button>
-          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
+          <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️️ Fechar</button>
         </div>
       </div>
       <div class="report-scroll-container">
-        <!-- O relatório é injetado aqui perfeitamente visível -->
         <div id="reportRenderArea"></div>
       </div>
     </div>
@@ -169,7 +165,7 @@
         }
 
         let htmlRows = '';
-        // Percorre do último para o primeiro para exibir o mais recente no topo
+        // Exibe o mais recente no topo (ordem decrescente)
         for (let i = reports.length - 1; i >= 0; i--) {
           const rep = reports[i];
           if (!rep) continue;
@@ -190,15 +186,12 @@
         }
         historyTableBody.innerHTML = htmlRows;
       } catch (err) {
-        historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Erro: ${err.message}</td></tr>`;
+        console.error(err);
+        historyTableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Erro ao carregar dados do histórico.</td></tr>`;
       }
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener("DOMContentLoaded", renderHistory);
-    } else {
-      renderHistory();
-    }
+    document.addEventListener("DOMContentLoaded", renderHistory);
 
     window.deleteReport = function(index) {
       if(confirm('Deseja realmente excluir este relatório?')) {
@@ -231,7 +224,7 @@
         const horasExatas = Math.floor(minutosTotais / 60);
         const minutosRestantes = Math.round(minutosTotais % 60);
         return {
-            totalHoursText: `${horasExatas}h${minutosRestantes}m`,
+            totalHoursText: `${horasExatas}h ${minutosRestantes}m`,
             valorHorasTotal: valorHorasTotal
         };
     }
@@ -317,8 +310,8 @@
         <div class="section-box" style="display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
           <div style="flex: 1; padding-right: 12px;">
             <div class="section-title" style="border:none; margin-bottom:6px; padding:0;">Dados Bancários & Pagamento PIX</div>
-            <p style="margin-bottom: 4px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency \vert{}\vert{} '-'} \vert{} <strong>Conta:</strong>${config.account || '-'}</p>
-            <p style="margin-bottom: 6px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix \vert{}\vert{} '-'} \vert{} <strong>Favorecido:</strong>${config.name || '-'}</p>
+            <p style="margin-bottom: 4px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
+            <p style="margin-bottom: 6px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix || '-'} | <strong>Favorecido:</strong> ${config.name || '-'}</p>
             <p style="font-size: 10px; color: #555; margin-top: 4px;">Escaneie o QR Code ao lado para efetuar o pagamento do valor total.</p>
           </div>
           <div style="text-align: center; background: #FFF; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; min-width: 120px;">
@@ -344,7 +337,7 @@
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
               <h1>ANEXOS / FOTOGRAFIAS DO EQUIPAMENTO</h1>
-              <p><strong>RS Nº:</strong> ${rep.number} \vert{} <strong>Cliente:</strong>${rep.client}</p>
+              <p><strong>RS Nº:</strong> ${rep.number} | <strong>Cliente:</strong> ${rep.client}</p>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 15px;">
@@ -359,7 +352,7 @@
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
               <h1>RELATÓRIO DE SERVIÇO (RS)</h1>
-              <p><strong>Nº do RS:</strong> ${rep.number} \vert{} <strong>Data:</strong>${rep.date}</p>
+              <p><strong>Nº do RS:</strong> ${rep.number} | <strong>Data:</strong> ${rep.date}</p>
             </div>
           </div>
 
@@ -407,8 +400,85 @@
           <div class="section-box">
             <div class="section-title">Critérios de Cobrança e Valor Total</div>
             <div style="font-size: 11px; margin-bottom: 8px;">
-              <p>• <strong>Serviço / Horas:</strong> ${textoHoras}</p>${kmHtml}
-              ${combustivelHtml}${despesasHtml}
+              <p>• <strong>Serviço / Horas:</strong> ${textoHoras}</p>
+              ${kmHtml}
+              ${combustivelHtml}
+              ${despesasHtml}
               <p>• <strong>Condição de Pagamento:</strong> ${rep.paymentTerms || '-'} dias</p>
             </div>
-            <div style="background: #E2E8F0; padding: 8px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 13px; color: #0B132
+            <div style="background: #E2E8F0; padding: 8px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 13px; color: #0B132B;">
+              TOTAL DO SERVIÇO: R$ ${valorTotalStr}
+            </div>
+          </div>
+
+          ${pixSectionHtml}
+
+          <div class="signature-area">
+            <div class="signature-box">
+              ${rep.techSignature ? `<img src="${rep.techSignature}" alt="Assinatura Técnico">` : '<p style="height: 55px;"></p>'}
+              <p>________________________________________</p>
+              <p><strong>Técnico Responsável:</strong> ${rep.technician || config.tech || 'Otávio Barbosa'}</p>
+            </div>
+            <div class="signature-box">
+              ${rep.signature ? `<img src="${rep.signature}" alt="Assinatura Cliente">` : '<p style="height: 55px;"></p>'}
+              <p>________________________________________</p>
+              <p><strong>Assinatura do Cliente</strong></p>
+            </div>
+          </div>
+
+          ${anexosHtml}
+        </div>
+      `;
+
+      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
+      document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
+      document.getElementById('loadingStatus').style.display = 'inline';
+      document.getElementById('reportPreviewModal').style.display = 'flex';
+
+      setTimeout(() => {
+        document.getElementById('loadingStatus').style.display = 'none';
+      }, 1200);
+    };
+
+    window.closeModal = function() {
+      document.getElementById('reportPreviewModal').style.display = 'none';
+    };
+
+    window.sharePDF = async function() {
+      const element = document.getElementById('reportRenderArea');
+      if (!element) return;
+
+      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+      
+      const opt = {
+        margin:       10,
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      try {
+        const worker = html2pdf().from(element).set(opt);
+        const pdfBlob = await worker.outputPdf('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+
+        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            title: `Relatório de Serviço ${activeReportData.number}`,
+            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
+            files: [pdfFile]
+          });
+        } else {
+          worker.save();
+          alert("O PDF foi descarregado diretamente, pois o seu navegador não suporta partilha direta de ficheiros.");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Erro ao gerar o PDF: " + err.message);
+      }
+    };
+  </script>
+
+</body>
+</html>
