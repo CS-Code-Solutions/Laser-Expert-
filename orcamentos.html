@@ -183,7 +183,7 @@
                 <input type="checkbox" id="checkNotIncluded" checked style="margin-top: 2px; flex-shrink: 0; width: 16px; height: 16px;" onchange="atualizarTermosCompletos()">
                 <span style="font-weight: bold;">Não estão inclusos:</span>
               </label>
-              <textarea id="orcNotIncludedText" rows="2" class="form-control" placeholder="óleos, peças, espelhos" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; font-size: 11px;" oninput="atualizarTermosCompletos()">óleos, peças, espelhos</textarea>
+              <textarea id="orcNotIncludedText" rows="2" class="form-control" placeholder="óleos, peças, espelhos" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit; font-size: 11px;" oninput="atualizarTermosCompletos()"></textarea>
             </div>
 
             <label for="orcTerms" style="margin-top: 8px; display: block;"><strong>Resumo das Condições Comerciais:</strong></label>
@@ -255,6 +255,7 @@
       const checkNotInc = document.getElementById('checkNotIncluded');
       const textNotInc = document.getElementById('orcNotIncludedText');
       if (checkNotInc && checkNotInc.checked && textNotInc) {
+        // Se estiver vazio, usa o placeholder como valor padrão de exemplo
         const val = textNotInc.value.trim() !== '' ? textNotInc.value.trim() : textNotInc.placeholder;
         selecionados.push(`Não estão inclusos: ${val}`);
       }
@@ -373,7 +374,7 @@
       
       document.querySelectorAll('.term-check').forEach(cb => cb.checked = true);
       document.getElementById('checkNotIncluded').checked = true;
-      document.getElementById('orcNotIncludedText').value = "óleos, peças, espelhos";
+      document.getElementById('orcNotIncludedText').value = ""; // Começa limpo, mostrando apenas o placeholder
       atualizarTermosCompletos();
 
       try {
