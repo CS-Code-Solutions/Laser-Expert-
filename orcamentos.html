@@ -21,6 +21,7 @@
       header, footer, .no-print, .action-toolbar { display: none !important; }
       body { background: white; color: black; padding: 0; margin: 0; }
       .card { box-shadow: none; border: none; padding: 0; margin: 0; }
+      .page-break { page-break-before: always; }
     }
 
     #budgetPreviewModal {
@@ -69,15 +70,15 @@
       position: relative;
     }
 
-    /* Estilo da Marca d'Água no PDF/Pré-visualização */
+    /* Marca d'água sucinta e elegante repetida por página */
     .watermark {
-      position: absolute;
+      position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) rotate(-30deg);
-      font-size: 65px;
+      font-size: 55px;
       font-weight: bold;
-      color: rgba(0, 245, 212, 0.08);
+      color: rgba(0, 245, 212, 0.05);
       z-index: 0;
       pointer-events: none;
       text-align: center;
@@ -90,7 +91,7 @@
     .print-header img { height: 50px; width: auto; }
     .print-header-info { text-align: right; }
     .print-header-info h1 { font-size: 15px; color: #0B132B; margin: 0; font-weight: bold; }
-    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; }
+    .section-box { border: 1px solid #CBD5E1; padding: 12px; margin-bottom: 12px; border-radius: 6px; background: #F8FAFC; page-break-inside: avoid; }
     .section-title { font-weight: bold; font-size: 13px; color: #0B132B; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .print-body p { margin: 3px 0; }
@@ -141,13 +142,13 @@
           </div>
           <div>
             <label for="orcEquipment"><strong>Equipamento / Máquina:</strong></label>
-            <input type="text" id="orcEquipment" placeholder="Ex: Coladeira de Borda SCM" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+            <input type="text" id="orcEquipment" placeholder="Ex: Laser Amada / SCM" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
         </div>
 
         <div style="margin-bottom: 12px;">
-          <label for="orcDesc"><strong>Descrição dos Serviços / Peças:</strong></label>
-          <textarea id="orcDesc" rows="4" placeholder="Detalhe os itens, peças e serviços incluídos neste orçamento..." style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
+          <label for="orcDesc"><strong>Dados do Serviço / Escopo:</strong></label>
+          <textarea id="orcDesc" rows="5" placeholder="Descreva os serviços (Ex: Ressonador, Alinhamento, Troca de turbina e espelhos...)" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
         </div>
 
         <div class="grid-2" style="margin-bottom: 15px;">
@@ -156,8 +157,8 @@
             <input type="number" step="0.01" id="orcTotal" placeholder="0.00" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
           <div>
-            <label for="orcTerms"><strong>Validade / Condição de Pagamento:</strong></label>
-            <input type="text" id="orcTerms" placeholder="Ex: 15 dias / 30 dias" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+            <label for="orcTerms"><strong>Condições Comerciais:</strong></label>
+            <textarea id="orcTerms" rows="3" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;">Pagamento a combinar. Impostos inclusos. Despesas com deslocamento, alimentação e hotel já incluso no orçamento. Deixar um cilindro de gás laser cheio para testes. Não estão inclusos, óleos, peças e espelhos.</textarea>
           </div>
         </div>
 
@@ -197,7 +198,7 @@
       <div class="action-toolbar">
         <div>
           <strong id="modalTitleOrc" style="color: var(--electric-cyan); font-size: 1rem;">Orçamento</strong>
-          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar imagens...</span>
+          <span id="loadingStatus" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A carregar...</span>
         </div>
         <div class="toolbar-buttons">
           <button class="btn" style="background-color: #10B981; padding: 6px 12px; font-size: 0.85rem;" onclick="sharePDF()">📤 Partilhar PDF</button>
@@ -226,7 +227,7 @@
         const clients = await DataSync.load('rg_clients') || [];
         select.innerHTML = '<option value="">Selecione um cliente...</option>';
         clients.forEach(c => {
-          select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
+          select.innerHTML += `<option value="${c.name}">${c.name} (A/C: ${c.contact || c.name})</option>`;
         });
       } catch (e) {
         console.error("Erro ao carregar clientes", e);
@@ -283,13 +284,8 @@
         }
       } catch (e) {}
 
-      // Sincronização em tempo real
-      DataSync.listen('rg_orcamentos', () => {
-        renderBudgets();
-      });
-      DataSync.listen('rg_clients', () => {
-        loadClientsSelect();
-      });
+      DataSync.listen('rg_orcamentos', () => renderBudgets());
+      DataSync.listen('rg_clients', () => loadClientsSelect());
     });
 
     document.getElementById('budgetForm').addEventListener('submit', async (e) => {
@@ -330,6 +326,7 @@
       document.getElementById('editIndex').value = '';
       document.getElementById('formTitle').textContent = 'Novo Orçamento';
       document.getElementById('orcDate').valueAsDate = new Date();
+      document.getElementById('orcTerms').value = "Pagamento a combinar. Impostos inclusos. Despesas com deslocamento, alimentação e hotel já incluso no orçamento. Deixar um cilindro de gás laser cheio para testes. Não estão inclusos, óleos, peças e espelhos.";
       try {
         let budgets = await DataSync.load('rg_orcamentos') || [];
         document.getElementById('orcNumber').value = `ORC-${String(budgets.length + 1).padStart(4, '0')}`;
@@ -423,7 +420,7 @@
             <div class="section-box">
               <div class="section-title">Dados do Cliente</div>
               <div class="grid-2">
-                <p><strong>Nome / Razão Social:</strong> ${b.client}</p>
+                <p><strong>Cliente / Razão Social:</strong> ${b.client}</p>
                 <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
                 <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
                 <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
@@ -431,21 +428,27 @@
             </div>
 
             <div class="section-box">
-              <div class="section-title">Equipamento</div>
-              <p><strong>Equipamento / Máquina:</strong> ${b.equipment || '-'}</p>
+              <div class="section-title">Equipamento / Máquina</div>
+              <p><strong>Equipamento:</strong> ${b.equipment || '-'}</p>
             </div>
 
             <div class="section-box">
-              <div class="section-title">Descrição Comercial e Escopo</div>
+              <div class="section-title">Escopo dos Serviços / Peças</div>
               <p style="white-space: pre-wrap; margin-top: 4px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.desc || '-'}</p>
             </div>
 
             <div class="section-box">
-              <div class="section-title">Condições e Valor</div>
-              <p style="margin-bottom: 8px;">• <strong>Condição de Pagamento / Validade:</strong> ${b.terms || '-'}</p>
+              <div class="section-title">Condições Comerciais</div>
+              <p style="white-space: pre-wrap; margin-bottom: 8px; background: #FFF; padding: 8px; border: 1px solid #E2E8F0; border-radius: 4px;">${b.terms || '-'}</p>
               <div style="background: #E2E8F0; padding: 10px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 14px; color: #0B132B;">
-                VALOR TOTAL DO ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
+                VALOR TOTAL DESTE ORÇAMENTO: R$ ${Number(b.total || 0).toFixed(2)}
               </div>
+            </div>
+
+            <div style="margin-top: 25px; text-align: right; page-break-inside: avoid;">
+              <p>________________________________________</p>
+              <p><strong>Otávio Barbosa</strong></p>
+              <p style="font-size: 11px; color: #555;">Dep. Técnico e Comercial — Laser Expert</p>
             </div>
           </div>
         `;
