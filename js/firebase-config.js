@@ -3,7 +3,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// As credenciais funcionais (mesma base do projeto de referência)
+// Credenciais do projeto Firebase do Laser Expert
 const firebaseConfig = {
   apiKey: "AIzaSyC5RJEWOK6pkQXRz1uYvKFR-hyPy5hL3Q4",
   authDomain: "gianni-35be8.firebaseapp.com",
@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:490260790735:web:30d15466c494f4a63f26ba"
 };
 
+// Inicializa o Firebase, Firestore, Storage e Auth
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
