@@ -3,7 +3,7 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Configuração correta do projeto Otávio no Firebase[span_1](start_span)[span_1](end_span)
+// Configuração atualizada do projeto Otávio (ID: otavio-b80a5)[span_1](start_span)[span_1](end_span)
 const firebaseConfig = {
   apiKey: "AIzaSyDwOTE-LCUmG3RIVFmwVhAYiIL06PRx0",
   authDomain: "otavio-b80a5.firebaseapp.com",
