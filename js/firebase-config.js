@@ -3,20 +3,18 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.8.0/firebase
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Credenciais do projeto Firebase do Laser Expert
+// Configuração correta do projeto Otávio no Firebase[span_1](start_span)[span_1](end_span)
 const firebaseConfig = {
-  apiKey: "AIzaSyC5RJEWOK6pkQXRz1uYvKFR-hyPy5hL3Q4",
-  authDomain: "gianni-35be8.firebaseapp.com",
-  databaseURL: "https://gianni-35be8-default-rtdb.firebaseio.com",
-  projectId: "gianni-35be8",
-  storageBucket: "gianni-35be8.firebasestorage.app",
-  messagingSenderId: "490260790735",
-  appId: "1:490260790735:web:30d15466c494f4a63f26ba"
+  apiKey: "AIzaSyDwOTE-LCUmG3RIVFmwVhAYiIL06PRx0",
+  authDomain: "otavio-b80a5.firebaseapp.com",
+  projectId: "otavio-b80a5",
+  storageBucket: "otavio-b80a5.firebasestorage.app",
+  messagingSenderId: "54639570167",
+  appId: "1:54639570167:web:b68950efc1bce86495b7f2"
 };
 
-// Inicializa o Firebase, Firestore, Storage e Auth
+// Inicialização dos serviços do Firebase
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const auth = getAuth(app);
-
