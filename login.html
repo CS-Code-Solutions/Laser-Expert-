@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    <!-- Script de Acesso Direto (Sem Validação Firebase Auth) -->
+    <!-- Script de Acesso Direto -->
     <script>
         const loginForm = document.getElementById('login-form');
         const btnLogin = document.getElementById('btn-login');
@@ -73,7 +73,6 @@
             btnLogin.disabled = true;
             btnLogin.textContent = "A entrar...";
 
-            // Guarda um indicador local de sessão e redireciona
             localStorage.setItem('laser_logged', 'true');
             window.location.href = 'index.html';
         });
