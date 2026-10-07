@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Laser Expert</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0B132B">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,30 +22,33 @@
             background: white;
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             width: 100%;
             max-width: 380px;
             text-align: center;
+            border-top: 4px solid #00F5D4;
         }
         .login-card img {
-            max-width: 150px;
+            max-width: 160px;
             height: auto;
             margin-bottom: 15px;
         }
-        h2 { color: #333; margin-bottom: 20px; font-size: 1.2rem; }
+        h2 { color: #0B132B; margin-bottom: 20px; font-size: 1.3rem; }
         .form-group { margin-bottom: 15px; text-align: left; }
-        label { display: block; margin-bottom: 5px; color: #555; font-size: 0.85rem; font-weight: bold; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { width: 100%; background: #00F5D4; color: #0B132B; border: none; padding: 12px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; }
+        label { display: block; margin-bottom: 5px; color: #334155; font-size: 0.85rem; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.95rem; }
+        input:focus { border-color: #00F5D4; outline: none; }
+        button { width: 100%; background: #00F5D4; color: #0B132B; border: none; padding: 12px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         button:hover { background: #00ddbe; }
         #error-msg { color: #EF4444; margin-top: 10px; font-size: 0.85rem; font-weight: bold; text-align: left; background: #FEF2F2; padding: 8px; border-radius: 4px; display: none; }
     </style>
 </head>
 <body>
     <div class="login-card">
-        <img src="logo.png" alt="Laser Expert">
-        <h2>Acesso ao Sistema</h2>
+        <!-- Logótipo -->
+        <img src="img/logo.png" alt="Laser Expert">
         
+        <h2>Iniciar Sessão</h2>
         <form id="login-form">
             <div class="form-group">
                 <label>E-mail:</label>
@@ -58,50 +62,62 @@
             <div id="error-msg"></div>
         </form>
 
+        <!-- Assinatura -->
         <div style="margin-top: 25px; font-size: 11px; color: #94A3B8; font-weight: 500;">
             Powered by CS Code Solutions
         </div>
     </div>
 
-    <!-- Script Modular com verificação de segurança -->
+    <!-- Registo do Service Worker para PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log("Service Worker registado com sucesso!"))
+                    .catch((err) => console.log("Erro ao registar o Service Worker:", err));
+            });
+        }
+    </script>
+
+    <!-- Script Modular com Cache Busting (v=1.3) -->
     <script type="module">
-        import { auth } from './js/firebase-config.js?v=2.0';
+        import { auth } from './js/firebase-config.js?v=1.3';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const loginForm = document.getElementById('login-form');
         const errorMsg = document.getElementById('error-msg');
         const btnLogin = document.getElementById('btn-login');
 
-        if (loginForm) {
-            loginForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
 
-                errorMsg.style.display = 'none';
-                errorMsg.textContent = "";
-                btnLogin.disabled = true;
-                btnLogin.textContent = "A entrar...";
+            errorMsg.style.display = 'none';
+            errorMsg.textContent = "";
+            btnLogin.disabled = true;
+            btnLogin.textContent = "A entrar...";
 
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    window.location.href = 'index.html';
-                } catch (error) {
-                    console.error("Erro no login:", error);
-                    let msg = "E-mail ou palavra-passe incorretos.";
-                    if (error.code === 'auth/too-many-requests') {
-                        msg = "Muitas tentativas falhadas. Tente novamente mais tarde.";
-                    } else if (error.code === 'auth/invalid-api-key') {
-                        msg = "Erro de configuração da chave do Firebase.";
-                    }
-                    
-                    errorMsg.textContent = msg;
-                    errorMsg.style.display = 'block';
-                    btnLogin.disabled = false;
-                    btnLogin.textContent = "Entrar";
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                window.location.href = 'index.html';
+            } catch (error) {
+                console.error("Erro no login:", error);
+                let msg = "E-mail ou palavra-passe incorretos.";
+                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+                    msg = "E-mail ou palavra-passe incorretos.";
+                } else if (error.code === 'auth/too-many-requests') {
+                    msg = "Muitas tentativas falhadas. Tente novamente mais tarde.";
+                } else {
+                    msg = `Erro ao entrar: ${error.message}`;
                 }
-            });
-        }
+                
+                errorMsg.textContent = msg;
+                errorMsg.style.display = 'block';
+                btnLogin.disabled = false;
+                btnLogin.textContent = "Entrar";
+            }
+        });
     </script>
 </body>
 </html>
