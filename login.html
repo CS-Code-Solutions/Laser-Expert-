@@ -1,191 +1,82 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
-  <!-- Firebase SDKs e Inicialização -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="firebase-init.js"></script>
-
-  <link rel="icon" href="img/ico1.png" type="image/png">
-  <link rel="manifest" href="manifest.json">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laser Expert - Login</title>
-  <link rel="stylesheet" href="style.css">
-  <style>
-    body.login-page {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: linear-gradient(135deg, #0B132B 0%, #1C2541 50%, #3A506B 100%);
-      background-image: 
-        radial-gradient(rgba(0, 245, 212, 0.1) 1px, transparent 1px),
-        linear-gradient(135deg, #0B132B 0%, #1C2541 100%);
-      background-size: 30px 30px, 100% 100%;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-      padding: 20px;
-    }
-
-    .login-card {
-      background: #FFFFFF;
-      border-radius: 12px;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-      padding: 35px 30px;
-      text-align: center;
-      border-top: 4px solid #00F5D4;
-    }
-
-    .login-card img.logo-login {
-      max-width: 180px;
-      height: auto;
-      margin-bottom: 25px;
-    }
-
-    .login-card h2 {
-      font-size: 1.2rem;
-      color: #0B132B;
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-      text-align: left;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 0.85rem;
-      color: #334155;
-      margin-bottom: 5px;
-      font-weight: 500;
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 12px 14px;
-      border: 1px solid #CBD5E1;
-      border-radius: 6px;
-      font-size: 0.95rem;
-      outline: none;
-      transition: border-color 0.2s;
-      box-sizing: border-box;
-    }
-
-    .form-group input:focus {
-      border-color: #00F5D4;
-      box-shadow: 0 0 0 3px rgba(0, 245, 212, 0.15);
-    }
-
-    .btn-login {
-      width: 100%;
-      padding: 12px;
-      background: #00F5D4;
-      color: #0B132B;
-      border: none;
-      border-radius: 6px;
-      font-size: 1rem;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: background 0.2s;
-    }
-
-    .btn-login:hover {
-      background: #00ddbe;
-    }
-
-    .login-error {
-      color: #EF4444;
-      font-size: 0.85rem;
-      margin-top: 12px;
-      display: none;
-      font-weight: bold;
-      background: #FEF2F2;
-      padding: 8px;
-      border-radius: 4px;
-      border: 1px solid #FCA5A5;
-      text-align: left;
-      word-break: break-all;
-    }
-
-    .login-footer {
-      margin-top: 25px;
-      font-size: 0.75rem;
-      color: #94A3B8;
-    }
-
-    .login-footer strong {
-      color: #00F5D4;
-    }
-  </style>
+    <link rel="icon" href="img/ico1.png" type="image/png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Laser Expert</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0B132B 0%, #1C2541 50%, #3A506B 100%);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+            border-top: 4px solid #00F5D4;
+        }
+        .login-card img {
+            max-width: 160px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        h2 { color: #0B132B; margin-bottom: 20px; font-size: 1.3rem; }
+        .form-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: #334155; font-size: 0.85rem; font-weight: bold; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 0.95rem; }
+        input:focus { border-color: #00F5D4; outline: none; }
+        button { width: 100%; background: #00F5D4; color: #0B132B; border: none; padding: 12px; border-radius: 4px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #00ddbe; }
+    </style>
 </head>
-<body class="login-page">
-
-  <div class="login-container">
+<body>
     <div class="login-card">
-      <img src="logo.png" alt="Laser Expert Logo" class="logo-login">
-      <h2>Acesso ao Sistema de RS</h2>
-      
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="email">E-mail de Acesso</label>
-          <input type="email" id="email" placeholder="ex: admin@expert.com" required>
+        <img src="logo.png" alt="Laser Expert">
+        <h2>Acesso ao Sistema</h2>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label>E-mail:</label>
+                <input type="email" id="email" required placeholder="exemplo@email.com">
+            </div>
+            <div class="form-group">
+                <label>Palavra-passe:</label>
+                <input type="password" id="password" required placeholder="********">
+            </div>
+            <button type="submit" id="btn-login">Entrar</button>
+        </form>
+
+        <div style="margin-top: 25px; font-size: 11px; color: #94A3B8; font-weight: 500;">
+            Powered by CS Code Solutions
         </div>
-
-        <div class="form-group">
-          <label for="senha">Palavra-passe</label>
-          <input type="password" id="senha" placeholder="••••••••" required>
-        </div>
-
-        <div id="loginError" class="login-error"></div>
-
-        <button type="submit" id="submitBtn" class="btn-login">ENTRAR</button>
-      </form>
-
-      <div class="login-footer">
-        <p>&copy; 2026 Laser Expert | Powered by <strong>CS Code Solutions</strong></p>
-      </div>
     </div>
-  </div>
 
-  <script>
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      const password = document.getElementById('senha').value.trim();
-      const errorBox = document.getElementById('loginError');
-      const submitBtn = document.getElementById('submitBtn');
+    <!-- Script de Acesso Direto (Sem Validação Firebase Auth) -->
+    <script>
+        const loginForm = document.getElementById('login-form');
+        const btnLogin = document.getElementById('btn-login');
 
-      errorBox.style.display = 'none';
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'A AUTENTICAR...';
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            btnLogin.disabled = true;
+            btnLogin.textContent = "A entrar...";
 
-      try {
-        await firebase.auth().signInWithEmailAndPassword(email, password);
-
-        localStorage.setItem('rg_logged', 'true');
-        localStorage.setItem('rg_user_email', email);
-        window.location.href = 'index.html';
-      } catch (err) {
-        console.error("Erro no login Firebase Auth:", err);
-        // Exibe o código de erro exato do Firebase para diagnóstico imediato
-        errorBox.textContent = `Erro Firebase [${err.code}]: ${err.message}`;
-        errorBox.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'ENTRAR';
-      }
-    });
-  </script>
-
+            // Guarda um indicador local de sessão e redireciona
+            localStorage.setItem('laser_logged', 'true');
+            window.location.href = 'index.html';
+        });
+    </script>
 </body>
 </html>
