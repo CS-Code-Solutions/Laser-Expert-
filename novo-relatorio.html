@@ -422,7 +422,8 @@
     document.addEventListener("DOMContentLoaded", async () => {
       try {
         clients = await DataSync.load('rg_clients') || [];
-        machines = await DataSync.load('rg_maquinas') || [];
+        // CORRIGIDO: Chave alterada para 'rg_machines' para corresponder ao cadastro de máquinas
+        machines = await DataSync.load('rg_machines') || [];
         reports = await DataSync.load('rg_relatorios') || [];
         const savedCfg = await DataSync.load('rg_config');
         if (savedCfg) config = { ...config, ...savedCfg };
@@ -454,15 +455,19 @@
     clientSelect.addEventListener('change', function() {
       const selectedClient = this.value;
       machineSelect.innerHTML = '<option value="">Selecione uma máquina cadastrada...</option>';
-      const clientMachines = machines.filter(m => m.client === selectedClient);
-      clientMachines.forEach(m => {
-        machineSelect.innerHTML += `<option value="${m.id}">${m.name} (${m.brand || ''} - ${m.model || ''})</option>`;
+      
+      // Filtra as máquinas correspondentes ao cliente selecionado guardando o índice original
+      machines.forEach((m, index) => {
+        if (m.client === selectedClient) {
+          machineSelect.innerHTML += `<option value="${index}">${m.name} (${m.brand || ''} - ${m.model || ''})</option>`;
+        }
       });
     });
 
     machineSelect.addEventListener('change', function() {
-      const machineId = this.value;
-      const m = machines.find(item => item.id == machineId);
+      const machineIndex = this.value;
+      if (machineIndex === "") return;
+      const m = machines[machineIndex];
       if (m) {
         equipmentInput.value = m.name || '';
         brandInput.value = m.brand || '';
@@ -489,7 +494,6 @@
           
           if (fileInput.files && fileInput.files[0]) {
             const file = fileInput.files[0];
-            // Comprime a imagem para max 1200x1200px e 80% de qualidade JPEG
             const fotoComprimida = await comprimirImagem(file, 1200, 1200, 0.8);
             const base64 = await fileToDataURL(fotoComprimida);
 
