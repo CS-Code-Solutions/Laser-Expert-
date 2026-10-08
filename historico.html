@@ -154,6 +154,7 @@
           <span id="loadingStatusRs" style="font-size: 0.8rem; margin-left: 8px; color: #FCD34D;">⏳ A preparar partilha...</span>
         </div>
         <div class="toolbar-buttons">
+          <button class="btn" style="background-color: #00F5D4; color: #0B132B; font-weight: bold; padding: 6px 12px; font-size: 0.85rem;" onclick="compartilharPDF()">📤 Partilhar PDF</button>
           <button class="btn" style="background-color: #EF4444; padding: 6px 12px; font-size: 0.85rem;" onclick="closeModal()">✖️ Fechar</button>
         </div>
       </div>
@@ -251,14 +252,6 @@
         };
     }
 
-    function gerarPayloadPix(chave, nome, cidade, valor, txid = "***") {
-        let chaveLimpa = chave.trim();
-        if (!chaveLimpa.includes('@') && !(chaveLimpa.length === 36 && chaveLimpa.split('-').length === 5) && !chaveLimpa.startsWith('+')) {
-            chaveLimpa = chaveLimpa.replace(/\D/g, '');
-        }
-        return `00020126580014br.gov.bcb.pix01${String(chaveLimpa.length).padStart(2,'0')}${chaveLimpa}52040000530398654${String(Number(valor).toFixed(2).length).padStart(2,'0')}${Number(valor).toFixed(2)}5802BR5913${nome.substring(0,13)}6009${cidade.substring(0,9)}62070503***6304`;
-    }
-
     window.openReportPreview = async function(index) {
       let reports = await DataSync.load('rg_reports') || [];
       const rep = reports[index];
@@ -270,9 +263,7 @@
         doc: '48.959.536/0001-65',
         email: 'comercial@laserexpertbr.com.br',
         contact: '+55 51 98144-1865',
-        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
-        pix: 'comercial@laserexpertbr.com.br',
-        bank: '', agency: '', account: ''
+        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
       };
 
       let config = { ...defaultConfig };
@@ -312,34 +303,12 @@
       }
 
       const valorTotalStr = valorTotal.toFixed(2);
-      activeReportData = { number: rep.number, client: rep.client, total: valorTotalStr };
-
-      let pixPayload = "";
-      let qrCodeUrl = "";
-      if (config.pix) {
-          pixPayload = gerarPayloadPix(config.pix, config.name, "Sao Leopoldo", valorTotalStr);
-          qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(pixPayload)}`;
-      }
+      activeReportData = { number: rep.number, client: rep.client };
 
       const kmHtml = rep.temKm === 'sim' ? `<p>• <strong>Quilômetros Rodados:</strong> ${(Number(rep.kmIda||0)+Number(rep.kmVolta||0))} km a R$ ${Number(rep.valorKm||0).toFixed(2)}/km</p>` : '';
       const combustivelHtml = rep.temCombustivel === 'sim' ? `<p>• <strong>Combustível:</strong> ${rep.combustivelLitros||0} L a R$ ${Number(rep.valorLitro||0).toFixed(2)}/L</p>` : '';
       const despesasHtml = rep.temDespesas === 'sim' ? `<p>• <strong>Outras Despesas / Pedágio:</strong> R$ ${Number(rep.valorAdicional||0).toFixed(2)}</p>` : '';
 
-      const pixSectionHtml = `
-        <div class="section-box" style="display: flex; justify-content: space-between; align-items: center; page-break-inside: avoid;">
-          <div style="flex: 1; padding-right: 12px;">
-            <div class="section-title" style="border:none; margin-bottom:4px; padding:0;">Dados Bancários & Pagamento PIX</div>
-            <p style="margin-bottom: 2px;">• <strong>Banco:</strong> ${config.bank || '-'} | <strong>Agência:</strong> ${config.agency || '-'} | <strong>Conta:</strong> ${config.account || '-'}</p>
-            <p style="margin-bottom: 4px;">• <strong>Chave PIX (CNPJ):</strong> ${config.pix || '-'} | <strong>Favorecido:</strong> ${config.name || '-'}</p>
-            <p style="font-size: 9px; color: #555;">Escaneie o QR Code ao lado para efetuar o pagamento.</p>
-          </div>
-          <div style="text-align: center; background: #FFF; padding: 4px; border: 1px solid #CBD5E1; border-radius: 4px; min-width: 100px;">
-            <img src="${qrCodeUrl}" alt="QR Code PIX" style="width: 95px; height: 95px; display: block; margin: 0 auto;">
-            <span style="font-size: 8px; font-weight: bold; display: block; margin-top: 2px;">PIX Copia e Cola</span>
-          </div>
-        </div>`;
-
-      // Seletores de segurança para encontrar as assinaturas independentemente do nome do campo na base de dados
       const clientSignature = rep.signature || rep.assinatura || rep.clientSignature || rep.assinaturaCliente || '';
       const techSignature = rep.techSignature || rep.assinaturaTecnico || rep.technicalSignature || '';
 
@@ -386,7 +355,7 @@
       }
 
       const fullReportHtml = `
-        <div class="print-body">
+        <div class="print-body" id="pdfContentToPrint">
           <div class="watermark">LASER EXPERT</div>
 
           <div class="print-header">
@@ -445,88 +414,39 @@
               ${kmHtml}
               ${combustivelHtml}
               ${despesasHtml}
-              <p>• <strong>Condição de Pagamento:</strong> ${rep.paymentTerms || '-'} dias</p>
             </div>
-            <div style="background: #E2E8F0; padding: 6px; border-radius: 4px; font-weight: bold; text-align: right; font-size: 12px; color: #0B132B;">
-              TOTAL DO SERVIÇO: R$ ${valorTotalStr}
-            </div>
+            <p style="font-size: 11px; font-weight: bold; color: #0D9488; border-top: 1px solid #CBD5E1; padding-top: 4px; margin-top: 4px;">Valor Total Estimado: R$ ${valorTotalStr}</p>
           </div>
 
-          ${pixSectionHtml}
-
           ${signatureAreaHtml}
-
           ${anexosHtml}
         </div>
       `;
 
-      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
       document.getElementById('reportRenderArea').innerHTML = fullReportHtml;
+      document.getElementById('modalTitleRs').textContent = `Relatório de Serviço - ${rep.number} (${rep.client})`;
+      document.getElementById('loadingStatusRs').textContent = 'Pronto';
       document.getElementById('reportPreviewModal').style.display = 'flex';
-
-      setTimeout(async () => {
-        const loadingStatus = document.getElementById('loadingStatusRs');
-        if (loadingStatus) loadingStatus.textContent = "✅ Pronto a partilhar";
-        await sharePDF();
-      }, 900);
     };
 
     window.closeModal = function() {
       document.getElementById('reportPreviewModal').style.display = 'none';
     };
 
-    window.sharePDF = async function() {
+    window.compartilharPDF = function() {
       const element = document.getElementById('reportRenderArea');
-      if (!element) return;
-
-      const scrollContainer = document.getElementById('reportScrollContainer');
-      const originalOverflow = scrollContainer ? scrollContainer.style.overflow : '';
-      const originalMaxHeight = scrollContainer ? scrollContainer.style.maxHeight : '';
-
-      if (scrollContainer) {
-        scrollContainer.style.overflow = 'visible';
-        scrollContainer.style.maxHeight = 'none';
-      }
-
-      const filename = `RS_${activeReportData.number}_${activeReportData.client.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
-      
       const opt = {
-        margin:       5,
-        filename:     filename,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true, logging: false },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        margin: 10,
+        filename: `Relatorio_RS_${activeReportData.number || 'RS-1000'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
-
-      try {
-        const worker = html2pdf().from(element).set(opt);
-        const pdfBlob = await worker.outputPdf('blob');
-
-        if (scrollContainer) {
-          scrollContainer.style.overflow = originalOverflow;
-          scrollContainer.style.maxHeight = originalMaxHeight;
-        }
-
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-
-        if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-          await navigator.share({
-            title: `Relatório de Serviço ${activeReportData.number}`,
-            text: `Segue o Relatório de Serviço ${activeReportData.number} (${activeReportData.client}). Valor total: R$ ${activeReportData.total}`,
-            files: [pdfFile]
-          });
-        } else {
-          worker.save();
-        }
-      } catch (err) {
-        if (scrollContainer) {
-          scrollContainer.style.overflow = originalOverflow;
-          scrollContainer.style.maxHeight = originalMaxHeight;
-        }
-        console.error(err);
-      }
+      document.getElementById('loadingStatusRs').textContent = 'A gerar PDF...';
+      html2pdf().from(element).set(opt).save().then(() => {
+        document.getElementById('loadingStatusRs').textContent = 'PDF Guardado!';
+      });
     };
   </script>
-
 </body>
 </html>
