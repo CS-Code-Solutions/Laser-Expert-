@@ -83,29 +83,49 @@
           <input type="number" id="configNextRs" value="1000">
         </div>
 
-        <h3 style="margin-top: 25px;">💳 Dados Bancários & Chave PIX</h3>
-
+        <!-- CONTA BANCÁRIA 1 -->
+        <h3 style="margin-top: 25px;">💳 Dados Bancários - Conta 1</h3>
         <div class="form-group">
-          <label for="configPix">Chave PIX (CNPJ, E-mail ou Telefone):</label>
-          <input type="text" id="configPix" placeholder="Ex: comercial@laserexpertbr.com.br">
+          <label for="configPix1">Chave PIX (Conta 1):</label>
+          <input type="text" id="configPix1" placeholder="Ex: comercial@laserexpertbr.com.br">
         </div>
-
         <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
           <div class="form-group">
-            <label for="configBank">Banco:</label>
-            <input type="text" id="configBank" placeholder="Ex: Nubank / Bradesco">
+            <label for="configBank1">Banco 1:</label>
+            <input type="text" id="configBank1" placeholder="Ex: Nubank">
           </div>
           <div class="form-group">
-            <label for="configAgency">Agência:</label>
-            <input type="text" id="configAgency" placeholder="Ex: 0001">
+            <label for="configAgency1">Agência 1:</label>
+            <input type="text" id="configAgency1" placeholder="Ex: 0001">
           </div>
           <div class="form-group">
-            <label for="configAccount">Conta:</label>
-            <input type="text" id="configAccount" placeholder="Ex: 12345-6">
+            <label for="configAccount1">Conta 1:</label>
+            <input type="text" id="configAccount1" placeholder="Ex: 12345-6">
           </div>
         </div>
 
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <!-- CONTA BANCÁRIA 2 -->
+        <h3 style="margin-top: 25px;">💳 Dados Bancários - Conta 2</h3>
+        <div class="form-group">
+          <label for="configPix2">Chave PIX (Conta 2):</label>
+          <input type="text" id="configPix2" placeholder="Ex: financeiro@laserexpertbr.com.br">
+        </div>
+        <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div class="form-group">
+            <label for="configBank2">Banco 2:</label>
+            <input type="text" id="configBank2" placeholder="Ex: Bradesco">
+          </div>
+          <div class="form-group">
+            <label for="configAgency2">Agência 2:</label>
+            <input type="text" id="configAgency2" placeholder="Ex: 1234">
+          </div>
+          <div class="form-group">
+            <label for="configAccount2">Conta 2:</label>
+            <input type="text" id="configAccount2" placeholder="Ex: 98765-4">
+          </div>
+        </div>
+
+        <div style="margin-top: 25px; display: flex; gap: 10px;">
           <button type="submit" class="btn" style="background-color: var(--electric-cyan); color: var(--deep-navy); font-weight: bold; padding: 10px 20px;">Guardar Configurações</button>
         </div>
       </form>
@@ -116,7 +136,7 @@
       <div>
         <h3 style="color: var(--deep-navy); margin-bottom: 10px; font-size: 1.2rem;">💾 Backup e Segurança de Dados</h3>
         <p style="font-size: 0.9rem; color: #64748B; margin-bottom: 20px;">
-          Faça o download de uma cópia de segurança de todos os seus dados (clientes, máquinas, relatórios, orçamentos e configurações) ou restaure os dados a partir de um ficheiro JSON anterior.
+          Faça o download de uma cópia de segurança de todos os seus dados ou restaure os dados a partir de um ficheiro JSON anterior.
         </p>
 
         <div style="display: flex; gap: 15px; flex-wrap: wrap;">
@@ -162,8 +182,8 @@
               email: 'comercial@laserexpertbr.com.br',
               contact: '+55 51 98144-1865',
               location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
-              pix: 'comercial@laserexpertbr.com.br',
-              bank: '', agency: '', account: '',
+              pix1: 'comercial@laserexpertbr.com.br', bank1: '', agency1: '', account1: '',
+              pix2: '', bank2: '', agency2: '', account2: '',
               nextRsNumber: '1000'
             };
           }
@@ -174,10 +194,17 @@
           document.getElementById('configEmail').value = config.email || '';
           document.getElementById('configContact').value = config.contact || '';
           document.getElementById('configLocation').value = config.location || '';
-          document.getElementById('configPix').value = config.pix || '';
-          document.getElementById('configBank').value = config.bank || '';
-          document.getElementById('configAgency').value = config.agency || '';
-          document.getElementById('configAccount').value = config.account || '';
+          
+          document.getElementById('configPix1').value = config.pix1 || '';
+          document.getElementById('configBank1').value = config.bank1 || '';
+          document.getElementById('configAgency1').value = config.agency1 || '';
+          document.getElementById('configAccount1').value = config.account1 || '';
+
+          document.getElementById('configPix2').value = config.pix2 || '';
+          document.getElementById('configBank2').value = config.bank2 || '';
+          document.getElementById('configAgency2').value = config.agency2 || '';
+          document.getElementById('configAccount2').value = config.account2 || '';
+
           document.getElementById('configNextRs').value = config.nextRsNumber || '1000';
         } catch (err) {
           console.error("Erro ao carregar configurações:", err);
@@ -185,22 +212,6 @@
       }
 
       await loadConfig();
-
-      DataSync.listen('rg_config', (remoteData) => {
-        if (remoteData) {
-          document.getElementById('configName').value = remoteData.name || '';
-          document.getElementById('configTech').value = remoteData.tech || '';
-          document.getElementById('configDoc').value = remoteData.doc || '';
-          document.getElementById('configEmail').value = remoteData.email || '';
-          document.getElementById('configContact').value = remoteData.contact || '';
-          document.getElementById('configLocation').value = remoteData.location || '';
-          document.getElementById('configPix').value = remoteData.pix || '';
-          document.getElementById('configBank').value = remoteData.bank || '';
-          document.getElementById('configAgency').value = remoteData.agency || '';
-          document.getElementById('configAccount').value = remoteData.account || '';
-          document.getElementById('configNextRs').value = remoteData.nextRsNumber || '1000';
-        }
-      });
 
       const form = document.getElementById('configForm');
       form.addEventListener('submit', async (e) => {
@@ -212,10 +223,17 @@
           email: document.getElementById('configEmail').value,
           contact: document.getElementById('configContact').value,
           location: document.getElementById('configLocation').value,
-          pix: document.getElementById('configPix').value,
-          bank: document.getElementById('configBank').value,
-          agency: document.getElementById('configAgency').value,
-          account: document.getElementById('configAccount').value,
+          
+          pix1: document.getElementById('configPix1').value,
+          bank1: document.getElementById('configBank1').value,
+          agency1: document.getElementById('configAgency1').value,
+          account1: document.getElementById('configAccount1').value,
+
+          pix2: document.getElementById('configPix2').value,
+          bank2: document.getElementById('configBank2').value,
+          agency2: document.getElementById('configAgency2').value,
+          account2: document.getElementById('configAccount2').value,
+
           nextRsNumber: document.getElementById('configNextRs').value
         };
 
@@ -228,16 +246,13 @@
       });
     });
 
-    // Funções de Backup e Restauração de Dados
     window.fazerBackup = async function() {
       try {
-        const keys = ['rg_config', 'rg_clients', 'rg_maquinas', 'rg_relatorios', 'rg_orcamentos'];
+        const keys = ['rg_config', 'rg_clients', 'rg_machines', 'rg_relatorios', 'rg_orcamentos'];
         const backupData = {};
-
         for (const key of keys) {
           backupData[key] = await DataSync.load(key) || [];
         }
-
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
         const downloadAnchor = document.createElement('a');
         const dataAtual = new Date().toISOString().split('T')[0];
@@ -246,8 +261,7 @@
         document.body.appendChild(downloadAnchor);
         downloadAnchor.click();
         downloadAnchor.remove();
-        
-        alert('Backup gerado e descarregado com sucesso!');
+        alert('Backup gerado com sucesso!');
       } catch (err) {
         alert('Erro ao gerar backup: ' + err.message);
       }
@@ -256,35 +270,28 @@
     window.restaurarBackup = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
-
-      if (!confirm('Atenção: A restauração irá substituir os dados atuais pelas informações do ficheiro de backup. Deseja continuar?')) {
+      if (!confirm('Atenção: A restauração irá substituir os dados atuais. Deseja continuar?')) {
         event.target.value = '';
         return;
       }
-
       const reader = new FileReader();
       reader.onload = async function(e) {
         try {
-          const content = e.target.result;
-          const backupData = JSON.parse(content);
-
+          const backupData = JSON.parse(e.target.result);
           const keys = ['rg_config', 'rg_clients', 'rg_maquinas', 'rg_relatorios', 'rg_orcamentos'];
           for (const key of keys) {
             if (backupData[key] !== undefined) {
               await DataSync.save(key, backupData[key]);
             }
           }
-
-          alert('Dados restaurados e sincronizados com sucesso!');
+          alert('Dados restaurados com sucesso!');
           location.reload();
         } catch (err) {
-          alert('Erro ao processar o ficheiro de backup. Certifique-se de que é um JSON válido.');
-          console.error(err);
+          alert('Erro ao processar ficheiro de backup.');
         }
       };
       reader.readAsText(file);
     };
   </script>
-
 </body>
 </html>
