@@ -37,8 +37,10 @@
 
   <main>
     <section class="card">
-      <h2>Cadastro de Máquinas / Equipamentos</h2>
+      <h2 id="formTitle">Cadastro de Máquinas / Equipamentos</h2>
       <form id="machineForm">
+        <input type="hidden" id="editIndex" value="">
+
         <div class="form-group">
           <label for="machineClient">Cliente / Empresa</label>
           <select id="machineClient" required>
@@ -68,7 +70,10 @@
           </div>
         </div>
 
-        <button type="submit" class="btn">Salvar Máquina</button>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" id="submitBtn" class="btn">Salvar Máquina</button>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF;" onclick="resetForm()">Cancelar / Limpar</button>
+        </div>
       </form>
     </section>
 
@@ -138,7 +143,12 @@
               <td>${m.name}</td>
               <td>${m.brand || '-'} / ${m.model || '-'}</td>
               <td>${m.serial || '-'}</td>
-              <td><button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteMachine(${index})">Excluir</button></td>
+              <td>
+                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                  <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editMachine(${index})">Editar</button>
+                  <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #EF4444;" onclick="deleteMachine(${index})">Excluir</button>
+                </div>
+              </td>
             </tr>
           `;
         });
@@ -152,18 +162,15 @@
       await loadDropdownClients();
       await renderMachines();
 
-      // Sincronização em tempo real
-      DataSync.listen('rg_machines', () => {
-        renderMachines();
-      });
-      DataSync.listen('rg_clients', () => {
-        loadDropdownClients();
-      });
+      DataSync.listen('rg_machines', () => { renderMachines(); });
+      DataSync.listen('rg_clients', () => { loadDropdownClients(); });
     });
 
     machineForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const newMachine = {
+      const editIndex = document.getElementById('editIndex').value;
+      
+      const machineData = {
         client: clientSelect.value,
         name: document.getElementById('machineName').value,
         brand: document.getElementById('machineBrand').value,
@@ -175,15 +182,50 @@
         machines = await DataSync.load('rg_machines') || [];
         if (!Array.isArray(machines)) machines = [];
         
-        machines.push(newMachine);
+        if (editIndex !== '') {
+          machines[editIndex] = machineData;
+          alert('Máquina atualizada e sincronizada com sucesso!');
+        } else {
+          machines.push(machineData);
+          alert('Máquina salva e sincronizada com sucesso!');
+        }
+
         await DataSync.save('rg_machines', machines);
-        machineForm.reset();
+        resetForm();
         renderMachines();
-        alert('Máquina salva e sincronizada com sucesso!');
       } catch (err) {
         alert('Erro ao salvar máquina: ' + err.message);
       }
     });
+
+    window.editMachine = async function(index) {
+      try {
+        machines = await DataSync.load('rg_machines') || [];
+        const m = machines[index];
+        if (!m) return;
+
+        document.getElementById('editIndex').value = index;
+        document.getElementById('formTitle').textContent = 'Editar Máquina / Equipamento';
+        document.getElementById('submitBtn').textContent = 'Atualizar Máquina';
+        
+        document.getElementById('machineClient').value = m.client || '';
+        document.getElementById('machineName').value = m.name || '';
+        document.getElementById('machineBrand').value = m.brand || '';
+        document.getElementById('machineModel').value = m.model || '';
+        document.getElementById('machineSerial').value = m.serial || '';
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } catch (err) {
+        alert('Erro ao carregar máquina para edição.');
+      }
+    };
+
+    window.resetForm = function() {
+      machineForm.reset();
+      document.getElementById('editIndex').value = '';
+      document.getElementById('formTitle').textContent = 'Cadastro de Máquinas / Equipamentos';
+      document.getElementById('submitBtn').textContent = 'Salvar Máquina';
+    };
 
     window.deleteMachine = async function(index) {
       if (confirm('Deseja realmente excluir esta máquina?')) {
