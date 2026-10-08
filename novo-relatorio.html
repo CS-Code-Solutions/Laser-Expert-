@@ -123,7 +123,6 @@
         <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
             <h3 style="font-size: 15px; margin-top: 0; color: var(--deep-navy); margin-bottom: 15px;">Critérios de Cobrança e Deslocação</h3>
             
-            <!-- Opção de Empreitada -->
             <div class="form-group">
                 <label for="tem-empreitada">Valor total do serviço (Cobrar por Empreitada)?</label>
                 <select id="tem-empreitada">
@@ -232,46 +231,40 @@
             </div>
         </div>
 
-        <!-- ANEXOS DINÂMICOS COM DESCRIÇÃO -->
+        <!-- ANEXOS DINÂMICOS -->
         <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
             <label style="display: block; font-weight: bold; margin-bottom: 10px; color: var(--deep-navy);">Anexos / Fotos do Equipamento (Compactação Automática)</label>
-            
             <div id="container-anexos" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
                 <div class="anexo-row" style="display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;">
                     <input type="text" placeholder="Descrição da foto (Ex: Antes da Intervenção)" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
                     <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
                 </div>
             </div>
-
             <button type="button" id="btn-adicionar-anexo" class="btn" style="background: var(--tech-blue); padding: 6px 12px; font-size: 0.85rem;">+ Adicionar outro anexo</button>
         </div>
 
-        <!-- Técnico Responsável -->
         <div class="form-group">
           <label for="technician-name">Técnico Responsável</label>
           <input type="text" id="technician-name" required>
         </div>
 
-        <!-- Descrição -->
         <div class="form-group">
           <label for="description">Descrição dos Trabalhos Realizados</label>
           <textarea id="description" rows="4" required placeholder="Descreva detalhadamente o serviço executado..."></textarea>
         </div>
 
-        <!-- Condição de Pagamento -->
         <div class="form-group">
           <label for="payment-terms">Condição de Pagamento (Dias)</label>
           <input type="text" id="payment-terms" placeholder="Ex: 30" required>
         </div>
 
-        <!-- Assinatura Técnico -->
+        <!-- Assinaturas -->
         <div class="form-group" style="margin-top: 15px;">
           <label>Assinatura do Técnico Responsável</label>
           <canvas id="tech-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
           <button type="button" id="clear-tech" class="btn" style="margin-top: 5px; background: var(--slate-gray); padding: 5px 12px; font-size: 0.85rem;">Limpar Assinatura</button>
         </div>
 
-        <!-- Assinatura Cliente -->
         <div class="form-group" style="margin-top: 15px;">
           <label>Assinatura do Cliente</label>
           <canvas id="client-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
@@ -290,7 +283,6 @@
   </footer>
 
   <script>
-    // Função auxiliar para comprimir e redimensionar imagens antes de guardar
     function comprimirImagem(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -302,34 +294,17 @@
             const canvas = document.createElement('canvas');
             let width = img.width;
             let height = img.height;
-
             if (width > height) {
-              if (width > maxWidth) {
-                height *= maxWidth / width;
-                width = maxWidth;
-              }
+              if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
             } else {
-              if (height > maxHeight) {
-                width *= maxHeight / height;
-                height = maxHeight;
-              }
+              if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
             }
-
-            canvas.width = width;
-            canvas.height = height;
+            canvas.width = width; canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-
             canvas.toBlob((blob) => {
-              if (!blob) {
-                reject(new Error('Erro ao comprimir imagem.'));
-                return;
-              }
-              const compressedFile = new File([blob], file.name, {
-                type: 'image/jpeg',
-                lastModified: Date.now()
-              });
-              resolve(compressedFile);
+              if (!blob) { reject(new Error('Erro ao comprimir imagem.')); return; }
+              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
             }, 'image/jpeg', quality);
           };
           img.onerror = (error) => reject(error);
@@ -422,7 +397,6 @@
     document.addEventListener("DOMContentLoaded", async () => {
       try {
         clients = await DataSync.load('rg_clients') || [];
-        // CORRIGIDO: Chave alterada para 'rg_machines' para corresponder ao cadastro de máquinas
         machines = await DataSync.load('rg_machines') || [];
         reports = await DataSync.load('rg_relatorios') || [];
         const savedCfg = await DataSync.load('rg_config');
@@ -432,31 +406,27 @@
           techNameInput.value = config.tech || 'Otávio Barbosa';
         }
 
-        // Número RS Automático
         let nextNum = 1001;
         if (reports.length > 0) {
           const numbers = reports.map(r => parseInt(r.number)).filter(n => !isNaN(n));
           if (numbers.length > 0) nextNum = Math.max(...numbers) + 1;
-        } else if (config.nextRs) {
-          nextNum = parseInt(config.nextRs);
+        } else if (config.nextRsNumber) {
+          nextNum = parseInt(config.nextRsNumber);
         }
         reportNumberInput.value = nextNum;
 
-        // Preencher Clientes
         clientSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
         clients.forEach(c => {
           clientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
         });
       } catch (e) {
-        console.error("Erro ao carregar dados iniciais:", e);
+        console.error("Erro ao carregar dados:", e);
       }
     });
 
     clientSelect.addEventListener('change', function() {
       const selectedClient = this.value;
       machineSelect.innerHTML = '<option value="">Selecione uma máquina cadastrada...</option>';
-      
-      // Filtra as máquinas correspondentes ao cliente selecionado guardando o índice original
       machines.forEach((m, index) => {
         if (m.client === selectedClient) {
           machineSelect.innerHTML += `<option value="${index}">${m.name} (${m.brand || ''} - ${m.model || ''})</option>`;
@@ -476,7 +446,6 @@
       }
     });
 
-    // Envio do Formulário com Compressão de Imagens
     document.getElementById('reportForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const submitBtn = document.getElementById('submitBtn');
@@ -484,19 +453,15 @@
       submitBtn.textContent = '⏳ A processar e otimizar imagens...';
 
       try {
-        // Processar anexos com compressão automática
         const anexoRows = document.querySelectorAll('.anexo-row');
         const anexosProcessados = [];
 
         for (const row of anexoRows) {
           const tituloInput = row.querySelector('.anexo-titulo');
           const fileInput = row.querySelector('.anexo-ficheiro');
-          
           if (fileInput.files && fileInput.files[0]) {
-            const file = fileInput.files[0];
-            const fotoComprimida = await comprimirImagem(file, 1200, 1200, 0.8);
+            const fotoComprimida = await comprimirImagem(fileInput.files[0], 1200, 1200, 0.8);
             const base64 = await fileToDataURL(fotoComprimida);
-
             anexosProcessados.push({
               title: tituloInput.value.trim() || 'Foto do Equipamento',
               url: base64
@@ -552,6 +517,5 @@
       }
     });
   </script>
-
 </body>
 </html>
