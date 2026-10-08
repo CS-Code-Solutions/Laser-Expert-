@@ -140,8 +140,8 @@
           <div>
             <label for="orcPaymentOption"><strong>Forma de Recebimento / Conta:</strong></label>
             <select id="orcPaymentOption" class="form-control" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background: #FFF;">
-              <option value="banco1">Conta Bancária 1 (Principal)</option>
-              <option value="banco2">Conta Bancária 2 (Secundária)</option>
+              <option value="banco1" id="optionBank1Label">Conta Bancária 1</option>
+              <option value="banco2" id="optionBank2Label">Conta Bancária 2</option>
               <option value="boleto">Boleto Bancário</option>
             </select>
           </div>
@@ -243,6 +243,22 @@
     let activeBudgetData = {};
     document.getElementById('orcDate').valueAsDate = new Date();
 
+    async function carregarApelidosContas() {
+      try {
+        const config = await DataSync.load('rg_config') || {};
+        const opt1 = document.getElementById('optionBank1Label');
+        const opt2 = document.getElementById('optionBank2Label');
+        if (opt1) {
+          opt1.textContent = config.nomeConta1 ? `PIX / Conta: ${config.nomeConta1}` : 'Conta Bancária 1';
+        }
+        if (opt2) {
+          opt2.textContent = config.nomeConta2 ? `PIX / Conta: ${config.nomeConta2}` : 'Conta Bancária 2';
+        }
+      } catch (e) {
+        console.error("Erro ao carregar apelidos dos bancos", e);
+      }
+    }
+
     function atualizarTermosCompletos() {
       const checkboxes = document.querySelectorAll('.term-check');
       let selecionados = [];
@@ -306,6 +322,7 @@
     }
 
     document.addEventListener("DOMContentLoaded", async () => {
+      await carregarApelidosContas();
       await loadClientsSelect();
       await renderBudgets();
       try {
@@ -318,6 +335,7 @@
 
       DataSync.listen('rg_orcamentos', () => renderBudgets());
       DataSync.listen('rg_clients', () => loadClientsSelect());
+      DataSync.listen('rg_config', () => carregarApelidosContas());
     });
 
     document.getElementById('budgetForm').addEventListener('submit', async (e) => {
@@ -432,14 +450,16 @@
         email: 'comercial@laserexpertbr.com.br',
         contact: '+55 51 98144-1865',
         location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
+        nomeConta1: 'Conta Principal',
         pix1: 'comercial@laserexpertbr.com.br', bank1: '', agency1: '', account1: '',
+        nomeConta2: 'Conta Secundária',
         pix2: '', bank2: '', agency2: '', account2: ''
       };
 
       let config = { ...defaultConfig };
       try {
         const savedCfg = await DataSync.load('rg_config');
-        if (savedCfg) config = { ...config, ...savedCfg };
+        if (savedCfg) config = { ...defaultConfig, ...savedCfg };
       } catch (e) {}
 
       let clients = [];
@@ -449,11 +469,13 @@
       let bancoInfoHtml = '';
       const opt = b.paymentOption || 'banco1';
       let pixKeyToUse = '';
+      let nomeConta1 = config.nomeConta1 || 'Conta Bancária 1';
+      let nomeConta2 = config.nomeConta2 || 'Conta Bancária 2';
 
       if (opt === 'banco1') {
         pixKeyToUse = config.pix1 || '';
         bancoInfoHtml = `
-          <p><strong>Forma de Recebimento:</strong> Transferência / PIX (Conta Bancária 1)</p>
+          <p><strong>Forma de Recebimento:</strong> Transferência / PIX (${nomeConta1})</p>
           <p><strong>Banco:</strong> ${config.bank1 || '-'}</p>
           <p><strong>Agência:</strong> ${config.agency1 || '-'} | <strong>Conta:</strong> ${config.account1 || '-'}</p>
           <p><strong>Chave PIX:</strong> ${pixKeyToUse || '-'}</p>
@@ -461,7 +483,7 @@
       } else if (opt === 'banco2') {
         pixKeyToUse = config.pix2 || '';
         bancoInfoHtml = `
-          <p><strong>Forma de Recebimento:</strong> Transferência / PIX (Conta Bancária 2)</p>
+          <p><strong>Forma de Recebimento:</strong> Transferência / PIX (${nomeConta2})</p>
           <p><strong>Banco:</strong> ${config.bank2 || '-'}</p>
           <p><strong>Agência:</strong> ${config.agency2 || '-'} | <strong>Conta:</strong> ${config.account2 || '-'}</p>
           <p><strong>Chave PIX:</strong> ${pixKeyToUse || '-'}</p>
@@ -473,7 +495,6 @@
         `;
       }
 
-      // Adicionar QR Code dinâmico caso esteja ativo e seja uma opção de conta bancária com chave PIX
       let qrCodeSection = '';
       if (opt !== 'boleto' && b.includeQr !== false && pixKeyToUse.trim() !== '') {
         const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(pixKeyToUse)}`;
