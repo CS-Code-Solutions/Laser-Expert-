@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
   <link rel="icon" href="img/ico.png" type="image/png">
   <link rel="manifest" href="manifest.json">
@@ -27,12 +27,6 @@
       border-radius: 4px;
       display: block;
       margin-bottom: 5px;
-    }
-    /* Ajuste responsivo para os horários em dispositivos móveis */
-    @media (max-width: 768px) {
-      #inputsHoras {
-        grid-template-columns: 1fr !important;
-      }
     }
   </style>
 </head>
@@ -122,64 +116,96 @@
           <textarea id="repDesc" rows="5" placeholder="Descreva detalhadamente o que foi executado..." required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
         </div>
 
-        <!-- COBRANÇA / HORAS / CUSTOS -->
+        <!-- CRITÉRIOS DE COBRANÇA E DESLOCAMENTO (ESTILO DA IMAGEM) -->
         <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-          <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--deep-navy);">Critérios de Cobrança</h3>
+          <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--deep-navy);">Critérios de Cobrança e Deslocamento</h3>
           
-          <div style="margin-bottom: 8px;">
-            <label><input type="checkbox" id="checkEmpreitada" onchange="toggleEmpreitada()"> Cobrança em regime de Empreitada (Valor Fechado)</label>
+          <!-- Cobrar Hora Trabalhada -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectHora"><strong>Cobrar Hora Trabalhada?</strong></label>
+            <select id="selectHora" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleHoraSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
           </div>
 
-          <div id="boxEmpreitada" style="display: none; margin-bottom: 10px;">
-            <label for="repValorEmpreitada">Valor Total da Empreitada (R$):</label>
-            <input type="number" step="0.01" id="repValorEmpreitada" value="0.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
-          </div>
-
-          <div id="boxHorasDetalhe">
+          <div id="boxHoraDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
             <div style="margin-bottom: 8px;">
-              <label><input type="checkbox" id="checkHora" checked onchange="toggleHoras()"> Cobrar Horas de Trabalho</label>
-            </div>
-            <div id="inputsHoras" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-              <div>
-                <label>Início / Fim Manhã:</label>
-                <div style="display: flex; gap: 5px;">
-                  <input type="time" id="startManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
-                  <input type="time" id="endManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
-                </div>
-              </div>
-              <div>
-                <label>Início / Fim Tarde:</label>
-                <div style="display: flex; gap: 5px;">
-                  <input type="time" id="startTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
-                  <input type="time" id="endTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
-                </div>
+              <label>Início / Fim Manhã:</label>
+              <div style="display: flex; gap: 5px; margin-top: 2px;">
+                <input type="time" id="startManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                <input type="time" id="endManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
               </div>
             </div>
-            <div style="margin-bottom: 10px;">
+            <div style="margin-bottom: 8px;">
+              <label>Início / Fim Tarde:</label>
+              <div style="display: flex; gap: 5px; margin-top: 2px;">
+                <input type="time" id="startTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                <input type="time" id="endTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+              </div>
+            </div>
+            <div>
               <label for="repValorHora">Valor da Hora (R$):</label>
-              <input type="number" step="0.01" id="repValorHora" value="200.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+              <input type="number" step="0.01" id="repValorHora" value="200.00" placeholder="Ex: 200.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
             </div>
           </div>
 
-          <div style="display: flex; gap: 15px; flex-wrap: wrap; border-top: 1px solid #E2E8F0; padding-top: 8px; margin-top: 8px;">
-            <label><input type="checkbox" id="checkKm" onchange="toggleKm()"> Quilometragem</label>
-            <label><input type="checkbox" id="checkCombustivel" onchange="toggleCombustivel()"> Combustível</label>
-            <label><input type="checkbox" id="checkDespesas" onchange="toggleDespesas()"> Outras Despesas / Pedágio</label>
+          <!-- Cobrar Km Rodado -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectKm"><strong>Cobrar Km Rodado?</strong></label>
+            <select id="selectKm" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleKmSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
           </div>
 
-          <div id="inputsKm" style="display: none; margin-top: 8px; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-            <div><label>KM Ida:</label><input type="number" id="kmIda" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
-            <div><label>KM Volta:</label><input type="number" id="kmVolta" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
-            <div><label>Valor/KM (R$):</label><input type="number" step="0.01" id="valorKm" value="2.50" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+          <div id="boxKmDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <div style="margin-bottom: 8px;">
+              <label for="valorKm">Valor por Km (R$):</label>
+              <input type="number" step="0.01" id="valorKm" value="2.50" placeholder="Ex: 2.50" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
+            <div style="margin-bottom: 8px;">
+              <label for="kmIda">Km Ida:</label>
+              <input type="number" id="kmIda" value="0" placeholder="Ex: 50" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
+            <div>
+              <label for="kmVolta">Km Volta:</label>
+              <input type="number" id="kmVolta" value="0" placeholder="Ex: 50" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
           </div>
 
-          <div id="inputsCombustivel" style="display: none; margin-top: 8px; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <div><label>Litros:</label><input type="number" step="0.1" id="combustivelLitros" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
-            <div><label>Valor/Litro (R$):</label><input type="number" step="0.01" id="valorLitro" value="6.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+          <!-- Adicionar Combustível -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectCombustivel"><strong>Adicionar Combustível?</strong></label>
+            <select id="selectCombustivel" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleCombustivelSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
           </div>
 
-          <div id="inputsDespesas" style="display: none; margin-top: 8px;">
-            <label>Valor Adicional (R$):</label><input type="number" step="0.01" id="valorAdicional" value="0.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+          <div id="boxCombustivelDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <div style="margin-bottom: 8px;">
+              <label for="valorLitro">Valor por Litro (R$):</label>
+              <input type="number" step="0.01" id="valorLitro" value="6.00" placeholder="Ex: 6.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
+            <div>
+              <label for="combustivelLitros">Quantidade (Litros):</label>
+              <input type="number" step="0.1" id="combustivelLitros" value="0" placeholder="Ex: 15.5" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
+          </div>
+
+          <!-- Adicionar Outras Despesas -->
+          <div style="margin-bottom: 4px;">
+            <label for="selectDespesas"><strong>Adicionar Outras Despesas (Pedágios, Alimentação, Hospedagem)?</strong></label>
+            <select id="selectDespesas" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleDespesasSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="boxDespesasDetalhes" style="display: none; margin-top: 10px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label for="valorAdicional">Valor Adicional (R$):</label>
+            <input type="number" step="0.01" id="valorAdicional" value="0.00" placeholder="Ex: 100.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
           </div>
         </div>
 
@@ -247,23 +273,21 @@
       clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
     };
 
-    function toggleEmpreitada() {
-      const sim = document.getElementById('checkEmpreitada').checked;
-      document.getElementById('boxEmpreitada').style.display = sim ? 'block' : 'none';
-      document.getElementById('boxHorasDetalhe').style.display = sim ? 'none' : 'block';
+    function toggleHoraSelect() {
+      const val = document.getElementById('selectHora').value;
+      document.getElementById('boxHoraDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
-
-    function toggleHoras() {
-      document.getElementById('inputsHoras').style.display = document.getElementById('checkHora').checked ? 'grid' : 'none';
+    function toggleKmSelect() {
+      const val = document.getElementById('selectKm').value;
+      document.getElementById('boxKmDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
-    function toggleKm() {
-      document.getElementById('inputsKm').style.display = document.getElementById('checkKm').checked ? 'grid' : 'none';
+    function toggleCombustivelSelect() {
+      const val = document.getElementById('selectCombustivel').value;
+      document.getElementById('boxCombustivelDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
-    function toggleCombustivel() {
-      document.getElementById('inputsCombustivel').style.display = document.getElementById('checkCombustivel').checked ? 'grid' : 'none';
-    }
-    function toggleDespesas() {
-      document.getElementById('inputsDespesas').style.display = document.getElementById('checkDespesas').checked ? 'block' : 'none';
+    function toggleDespesasSelect() {
+      const val = document.getElementById('selectDespesas').value;
+      document.getElementById('boxDespesasDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
 
     function converterAnexo(event) {
@@ -338,38 +362,47 @@
             document.getElementById('repServiceArea').value = rep.serviceArea || '';
             document.getElementById('repDesc').value = rep.desc || '';
             
-            if (rep.temEmpreitada === 'sim') {
-              document.getElementById('checkEmpreitada').checked = true;
-              document.getElementById('repValorEmpreitada').value = rep.valorEmpreitada || 0;
-              toggleEmpreitada();
-            }
-            if (rep.temHora === 'no') {
-              document.getElementById('checkHora').checked = false;
-              toggleHoras();
-            } else {
+            if (rep.temHora === 'sim') {
+              document.getElementById('selectHora').value = 'sim';
+              toggleHoraSelect();
               document.getElementById('startManha').value = rep.startManha || '';
               document.getElementById('endManha').value = rep.endManha || '';
               document.getElementById('startTarde').value = rep.startTarde || '';
               document.getElementById('endTarde').value = rep.endTarde || '';
               document.getElementById('repValorHora').value = rep.valorHora || 200.00;
+            } else {
+              document.getElementById('selectHora').value = 'nao';
+              toggleHoraSelect();
             }
+
             if (rep.temKm === 'sim') {
-              document.getElementById('checkKm').checked = true;
+              document.getElementById('selectKm').value = 'sim';
+              toggleKmSelect();
               document.getElementById('kmIda').value = rep.kmIda || 0;
               document.getElementById('kmVolta').value = rep.kmVolta || 0;
               document.getElementById('valorKm').value = rep.valorKm || 2.50;
-              toggleKm();
+            } else {
+              document.getElementById('selectKm').value = 'nao';
+              toggleKmSelect();
             }
+
             if (rep.temCombustivel === 'sim') {
-              document.getElementById('checkCombustivel').checked = true;
+              document.getElementById('selectCombustivel').value = 'sim';
+              toggleCombustivelSelect();
               document.getElementById('combustivelLitros').value = rep.combustivelLitros || 0;
               document.getElementById('valorLitro').value = rep.valorLitro || 6.00;
-              toggleCombustivel();
+            } else {
+              document.getElementById('selectCombustivel').value = 'nao';
+              toggleCombustivelSelect();
             }
+
             if (rep.temDespesas === 'sim') {
-              document.getElementById('checkDespesas').checked = true;
+              document.getElementById('selectDespesas').value = 'sim';
+              toggleDespesasSelect();
               document.getElementById('valorAdicional').value = rep.valorAdicional || 0;
-              toggleDespesas();
+            } else {
+              document.getElementById('selectDespesas').value = 'nao';
+              toggleDespesasSelect();
             }
 
             if (rep.signature) {
@@ -415,25 +448,23 @@
         serviceArea: document.getElementById('repServiceArea').value,
         desc: document.getElementById('repDesc').value,
         
-        temEmpreitada: document.getElementById('checkEmpreitada').checked ? 'sim' : 'no',
-        valorEmpreitada: document.getElementById('repValorEmpreitada').value,
-        temHora: document.getElementById('checkHora').checked ? 'sim' : 'no',
+        temHora: document.getElementById('selectHora').value,
         startManha: document.getElementById('startManha').value,
         endManha: document.getElementById('endManha').value,
         startTarde: document.getElementById('startTarde').value,
         endTarde: document.getElementById('endTarde').value,
         valorHora: document.getElementById('repValorHora').value,
 
-        temKm: document.getElementById('checkKm').checked ? 'sim' : 'no',
+        temKm: document.getElementById('selectKm').value,
         kmIda: document.getElementById('kmIda').value,
         kmVolta: document.getElementById('kmVolta').value,
         valorKm: document.getElementById('valorKm').value,
 
-        temCombustivel: document.getElementById('checkCombustivel').checked ? 'sim' : 'no',
+        temCombustivel: document.getElementById('selectCombustivel').value,
         combustivelLitros: document.getElementById('combustivelLitros').value,
         valorLitro: document.getElementById('valorLitro').value,
 
-        temDespesas: document.getElementById('checkDespesas').checked ? 'sim' : 'no',
+        temDespesas: document.getElementById('selectDespesas').value,
         valorAdicional: document.getElementById('valorAdicional').value,
 
         signature: clientSigData,
@@ -467,6 +498,10 @@
       document.getElementById('editIndex').value = '';
       document.getElementById('formTitle').textContent = 'Novo Relatório de Serviço (RS)';
       document.getElementById('repDate').valueAsDate = new Date();
+      toggleHoraSelect();
+      toggleKmSelect();
+      toggleCombustivelSelect();
+      toggleDespesasSelect();
       clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
       anexosList = [];
       renderizarAnexos();
