@@ -58,33 +58,16 @@
       border-bottom: 2px solid var(--electric-cyan);
       flex-shrink: 0;
     }
-    .toolbar-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .report-scroll-container {
-      padding: 20px;
-      overflow-y: auto;
-      background: #FFF;
-      flex-grow: 1;
-      position: relative;
-    }
+    .toolbar-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+    .report-scroll-container { padding: 20px; overflow-y: auto; background: #FFF; flex-grow: 1; position: relative; }
 
     .watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
+      position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%) rotate(-30deg);
-      font-size: 85px;
-      font-weight: bold;
+      font-size: 85px; font-weight: bold;
       color: rgba(0, 245, 212, 0.025);
-      z-index: 0;
-      pointer-events: none;
-      text-align: center;
-      white-space: nowrap;
-      text-transform: uppercase;
-      width: 100%;
+      z-index: 0; pointer-events: none;
+      text-align: center; white-space: nowrap; text-transform: uppercase; width: 100%;
     }
 
     .print-body { font-family: Arial, sans-serif; color: #0B132B; line-height: 1.4; font-size: 11px; position: relative; z-index: 1; box-sizing: border-box; width: 100%; }
@@ -263,7 +246,8 @@
         doc: '48.959.536/0001-65',
         email: 'comercial@laserexpertbr.com.br',
         contact: '+55 51 98144-1865',
-        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS'
+        location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
+        techSignature: ''
       };
 
       let config = { ...defaultConfig };
@@ -310,14 +294,14 @@
       const despesasHtml = rep.temDespesas === 'sim' ? `<p>• <strong>Outras Despesas / Pedágio:</strong> R$ ${Number(rep.valorAdicional||0).toFixed(2)}</p>` : '';
 
       const clientSignature = rep.signature || rep.assinatura || rep.clientSignature || rep.assinaturaCliente || '';
-      const techSignature = rep.techSignature || rep.assinaturaTecnico || rep.technicalSignature || '';
+      const techSignature = config.techSignature || '';
 
       const signatureAreaHtml = `
         <div class="signature-area">
           <div class="signature-box">
             ${techSignature ? `<img src="${techSignature}" alt="Assinatura Técnico">` : '<p style="height: 50px;"></p>'}
             <p>________________________________________</p>
-            <p><strong>Técnico Responsável:</strong> ${rep.technician || config.tech || 'Otávio Barbosa'}</p>
+            <p><strong>Técnico Responsável:</strong> ${config.tech || 'Otávio Barbosa'}</p>
           </div>
           <div class="signature-box">
             ${clientSignature ? `<img src="${clientSignature}" alt="Assinatura Cliente">` : '<p style="height: 50px;"></p>'}
