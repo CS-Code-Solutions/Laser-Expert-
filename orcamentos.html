@@ -453,7 +453,8 @@
         nomeConta1: 'Conta Principal',
         pix1: 'comercial@laserexpertbr.com.br', bank1: '', agency1: '', account1: '',
         nomeConta2: 'Conta Secundária',
-        pix2: '', bank2: '', agency2: '', account2: ''
+        pix2: '', bank2: '', agency2: '', account2: '',
+        techSignature: ''
       };
 
       let config = { ...defaultConfig };
@@ -505,6 +506,17 @@
           </div>
         `;
       }
+
+      const techSignature = config.techSignature || '';
+      const signatureAreaHtml = `
+        <div style="margin-top: 15px; display: flex; justify-content: center; page-break-inside: avoid;">
+          <div style="text-align: center; width: 60%;">
+            ${techSignature ? `<img src="${techSignature}" alt="Assinatura Técnico" style="max-width: 180px; height: 50px; object-fit: contain; display: block; margin: 0 auto;">` : '<div style="height: 50px;"></div>'}
+            <p style="margin: 2px 0;">________________________________________</p>
+            <p style="margin: 2px 0; font-size: 10px;"><strong>Responsável Técnico / Emissor:</strong> ${config.tech || 'Otávio Barbosa'}</p>
+          </div>
+        </div>
+      `;
 
       const renderArea = document.getElementById('budgetRenderArea');
       renderArea.innerHTML = `
@@ -559,6 +571,8 @@
             <p style="font-size: 13px; font-weight: bold; color: #0B132B;">VALOR TOTAL DO ORÇAMENTO:</p>
             <p style="font-size: 18px; font-weight: bold; color: #0D9488;">R$ ${Number(b.total || 0).toFixed(2)}</p>
           </div>
+
+          ${signatureAreaHtml}
         </div>
       `;
 
