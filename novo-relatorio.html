@@ -209,24 +209,46 @@
             </div>
           </div>
 
-          <!-- Despesas Divididas (Pedágio, Hospedagem e Outras) -->
-          <div style="background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
-            <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--deep-navy);">Despesas Operacionais (Pedágio, Hospedagem, etc.):</label>
-            
-            <div style="margin-bottom: 8px;">
-              <label for="valorPedagio">Pedágio (R$):</label>
-              <input type="number" step="0.01" id="valorPedagio" value="0.00" placeholder="Ex: 30.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
-            </div>
+          <!-- Adicionar Pedágio (Sim/Não) -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectPedagio"><strong>Adicionar Pedágio?</strong></label>
+            <select id="selectPedagio" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="togglePedagioSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
 
-            <div style="margin-bottom: 8px;">
-              <label for="valorHospedagem">Hospedagem (R$):</label>
-              <input type="number" step="0.01" id="valorHospedagem" value="0.00" placeholder="Ex: 150.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
-            </div>
+          <div id="boxPedagioDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label for="valorPedagio">Valor do Pedágio (R$):</label>
+            <input type="number" step="0.01" id="valorPedagio" value="0.00" placeholder="Ex: 30.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+          </div>
 
-            <div>
-              <label for="valorOutras">Outras Despesas / Alimentação (R$):</label>
-              <input type="number" step="0.01" id="valorOutras" value="0.00" placeholder="Ex: 50.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
-            </div>
+          <!-- Adicionar Hospedagem (Sim/Não) -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectHospedagem"><strong>Adicionar Hospedagem?</strong></label>
+            <select id="selectHospedagem" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleHospedagemSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="boxHospedagemDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label for="valorHospedagem">Valor da Hospedagem (R$):</label>
+            <input type="number" step="0.01" id="valorHospedagem" value="0.00" placeholder="Ex: 150.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+          </div>
+
+          <!-- Adicionar Outras Despesas / Alimentação (Sim/Não) -->
+          <div style="margin-bottom: 4px;">
+            <label for="selectOutras"><strong>Adicionar Outras Despesas / Alimentação?</strong></label>
+            <select id="selectOutras" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleOutrasSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="boxOutrasDetalhes" style="display: none; margin-top: 10px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label for="valorOutras">Valor Adicional (R$):</label>
+            <input type="number" step="0.01" id="valorOutras" value="0.00" placeholder="Ex: 50.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
           </div>
         </div>
 
@@ -310,6 +332,18 @@
     function toggleCombustivelSelect() {
       const val = document.getElementById('selectCombustivel').value;
       document.getElementById('boxCombustivelDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
+    }
+    function togglePedagioSelect() {
+      const val = document.getElementById('selectPedagio').value;
+      document.getElementById('boxPedagioDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
+    }
+    function toggleHospedagemSelect() {
+      const val = document.getElementById('selectHospedagem').value;
+      document.getElementById('boxHospedagemDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
+    }
+    function toggleOutrasSelect() {
+      const val = document.getElementById('selectOutras').value;
+      document.getElementById('boxOutrasDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
 
     function converterAnexo(event) {
@@ -472,9 +506,32 @@
               toggleCombustivelSelect();
             }
 
-            document.getElementById('valorPedagio').value = rep.valorPedagio || 0;
-            document.getElementById('valorHospedagem').value = rep.valorHospedagem || 0;
-            document.getElementById('valorOutras').value = rep.valorOutras || 0;
+            if (rep.temPedagio === 'sim') {
+              document.getElementById('selectPedagio').value = 'sim';
+              togglePedagioSelect();
+              document.getElementById('valorPedagio').value = rep.valorPedagio || 0;
+            } else {
+              document.getElementById('selectPedagio').value = 'nao';
+              togglePedagioSelect();
+            }
+
+            if (rep.temHospedagem === 'sim') {
+              document.getElementById('selectHospedagem').value = 'sim';
+              toggleHospedagemSelect();
+              document.getElementById('valorHospedagem').value = rep.valorHospedagem || 0;
+            } else {
+              document.getElementById('selectHospedagem').value = 'nao';
+              toggleHospedagemSelect();
+            }
+
+            if (rep.temOutras === 'sim') {
+              document.getElementById('selectOutras').value = 'sim';
+              toggleOutrasSelect();
+              document.getElementById('valorOutras').value = rep.valorOutras || 0;
+            } else {
+              document.getElementById('selectOutras').value = 'nao';
+              toggleOutrasSelect();
+            }
 
             if (rep.signature) {
               const img = new Image();
@@ -538,8 +595,13 @@
         combustivelLitros: document.getElementById('combustivelLitros').value,
         valorLitro: document.getElementById('valorLitro').value,
 
+        temPedagio: document.getElementById('selectPedagio').value,
         valorPedagio: document.getElementById('valorPedagio').value,
+
+        temHospedagem: document.getElementById('selectHospedagem').value,
         valorHospedagem: document.getElementById('valorHospedagem').value,
+
+        temOutras: document.getElementById('selectOutras').value,
         valorOutras: document.getElementById('valorOutras').value,
 
         signature: clientSigData,
@@ -578,6 +640,9 @@
       toggleHoraSelect();
       toggleKmSelect();
       toggleCombustivelSelect();
+      togglePedagioSelect();
+      toggleHospedagemSelect();
+      toggleOutrasSelect();
       clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
       anexosList = [];
       renderizarAnexos();
