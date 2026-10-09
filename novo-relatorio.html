@@ -1,6 +1,13 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
+  <link rel="icon" href="img/ico.png" type="image/png">
+  <link rel="manifest" href="manifest.json">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Laser Expert - Novo Relatório de Serviço</title>
+  <link rel="stylesheet" href="style.css">
+  
   <!-- Firebase SDKs e Sincronização -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -8,22 +15,27 @@
   <script src="firebase-init.js"></script>
   <script src="firebase-sync.js"></script>
 
-  <link rel="icon" href="ico.png" type="image/png">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Laser Expert - Novo Relatório de Serviço</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0B132B">
-  <!-- Signature Pad CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+  <style>
+    .signature-pad {
+      border: 2px dashed #CBD5E1;
+      background: #FFF;
+      width: 100%;
+      max-width: 400px;
+      height: 150px;
+      cursor: crosshair;
+      touch-action: none;
+      border-radius: 4px;
+      display: block;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
 
-  <header>
+  <header class="no-print">
     <div class="nav-container">
       <a href="index.html" class="logo">
-        <img src="logo.png" alt="Laser Expert">
+        <img src="logo.png" alt="Logo">
       </a>
       <nav>
         <ul>
@@ -41,481 +53,418 @@
 
   <main>
     <section class="card">
-      <h2 id="pageTitle">Novo Relatório de Serviço (RS)</h2>
-      
+      <h2 id="formTitle">Novo Relatório de Serviço (RS)</h2>
       <form id="reportForm">
-        <!-- Seleção de Cliente -->
-        <div class="form-group">
-          <label for="reportClient">Cliente / Empresa</label>
-          <select id="reportClient" required>
-            <option value="">A carregar clientes...</option>
-          </select>
-        </div>
+        <input type="hidden" id="editIndex" value="">
 
-        <!-- Seleção de Máquina Cadastrada -->
-        <div class="form-group">
-          <label for="machineSelect">Equipamento (Cadastrado)</label>
-          <select id="machineSelect">
-            <option value="">Selecione o cliente primeiro...</option>
-          </select>
-        </div>
-
-        <!-- Dados do Equipamento -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="equipment">Nome / Equipamento</label>
-            <input type="text" id="equipment" required placeholder="Ex: Centro de Usinagem">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label for="repNumber"><strong>Nº do Relatório (RS):</strong></label>
+            <input type="text" id="repNumber" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="brand">Marca</label>
-            <input type="text" id="brand" placeholder="Ex: Trumpf / Bystronic">
+          <div>
+            <label for="repDate"><strong>Data do Atendimento:</strong></label>
+            <input type="date" id="repDate" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
         </div>
 
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="model">Modelo</label>
-            <input type="text" id="model" placeholder="Ex: TruLaser 3030">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label for="repClient"><strong>Cliente:</strong></label>
+            <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
           </div>
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="serial-number">Matrícula / N° de Série</label>
-            <input type="text" id="serial-number" placeholder="Ex: SN-99823">
-          </div>
-        </div>
-
-        <!-- Número e Data do RS -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="reportNumber">Número do RS (Automático)</label>
-            <input type="text" id="reportNumber" required readonly style="background: var(--ice-white); font-weight: bold; color: var(--tech-blue);">
-          </div>
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="reportDate">Data do Atendimento</label>
-            <input type="date" id="reportDate" required>
+          <div>
+            <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
+            <input type="text" id="repEquipment" placeholder="Ex: Laser Fibra 3000W" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
         </div>
 
-        <!-- Tipo e Área de Serviço -->
-        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="service-nature">Tipo de Manutenção</label>
-            <select id="service-nature">
-              <option value="Manutenção Corretiva">Corretiva</option>
-              <option value="Manutenção Preventiva/Preditiva">Preventiva / Preditiva</option>
-              <option value="Garantia">Garantia</option>
-              <option value="Suporte Técnico / Outros">Outros</option>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label for="repBrand"><strong>Marca:</strong></label>
+            <input type="text" id="repBrand" placeholder="Ex: Raycus / IPG" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+          <div>
+            <label for="repModel"><strong>Modelo:</strong></label>
+            <input type="text" id="repModel" placeholder="Ex: LF-3015" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label for="repSerialNumber"><strong>Matrícula / N° de Série:</strong></label>
+          <input type="text" id="repSerialNumber" placeholder="Número de série do equipamento" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+          <div>
+            <label for="repServiceNature"><strong>Tipo de Manutenção:</strong></label>
+            <select id="repServiceNature" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;">
+              <option value="Corretiva">Corretiva</option>
+              <option value="Preventiva">Preventiva</option>
+              <option value="Instalação">Instalação</option>
+              <option value="Treinamento">Treinamento</option>
             </select>
           </div>
-          <div class="form-group" style="flex: 1; min-width: 200px;">
-            <label for="service-area">Área de Serviço</label>
-            <select id="service-area" required>
-              <option value="Elétrica">Elétrica</option>
-              <option value="Mecânica">Mecânica</option>
-              <option value="Eletrônica">Eletrônica</option>
-              <option value="Hidráulica">Hidráulica</option>
-              <option value="Óptica / Laser">Óptica / Laser</option>
-              <option value="Outros">Outros</option>
-            </select>
+          <div>
+            <label for="repServiceArea"><strong>Área de Serviço:</strong></label>
+            <input type="text" id="repServiceArea" placeholder="Ex: Mecânica / Óptica / Software" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
           </div>
         </div>
 
-        <!-- CRITÉRIOS DE COBRANÇA E DESLOCAÇÃO -->
-        <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
-            <h3 style="font-size: 15px; margin-top: 0; color: var(--deep-navy); margin-bottom: 15px;">Critérios de Cobrança e Deslocação</h3>
-            
-            <div class="form-group">
-                <label for="tem-empreitada">Valor total do serviço (Cobrar por Empreitada)?</label>
-                <select id="tem-empreitada">
-                    <option value="nao">Não</option>
-                    <option value="sim">Sim</option>
-                </select>
-            </div>
-
-            <div id="bloco-empreitada" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor total do serviço (R$):</label>
-                <input type="number" step="0.01" id="valor-empreitada" placeholder="Ex: 1500.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
-            </div>
-
-            <div id="bloco-horas-geral">
-                <div class="form-group">
-                    <label for="tem-hora">Cobrar Hora Trabalhada?</label>
-                    <select id="tem-hora">
-                        <option value="sim">Sim</option>
-                        <option value="nao">Não</option>
-                    </select>
-                </div>
-
-                <div id="bloco-turnos" style="background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
-                    <div style="margin-bottom: 10px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor da Hora (R$):</label>
-                        <input type="number" step="0.01" id="valor-hora" value="200.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                    </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 10px;">
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Manhã:</label>
-                            <input type="datetime-local" id="time-start-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                        </div>
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Manhã:</label>
-                            <input type="datetime-local" id="time-end-manha" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Início Tarde:</label>
-                            <input type="datetime-local" id="time-start-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                        </div>
-                        <div style="flex: 1; min-width: 180px;">
-                            <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Final Tarde (Encerramento):</label>
-                            <input type="datetime-local" id="time-end-tarde" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="tem-km">Cobrar Km Rodado?</label>
-                <select id="tem-km">
-                    <option value="nao">Não</option>
-                    <option value="sim">Sim</option>
-                </select>
-            </div>
-
-            <div id="bloco-km" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor por Km (R$):</label>
-                    <input type="number" step="0.01" id="valor-km" placeholder="Ex: 2.50" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                </div>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Km Ida:</label>
-                        <input type="number" step="0.1" id="km-ida" placeholder="Ex: 50" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                    </div>
-                    <div style="flex: 1; min-width: 180px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Km Volta:</label>
-                        <input type="number" step="0.1" id="km-volta" placeholder="Ex: 50" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="tem-combustivel">Adicionar Combustível?</label>
-                <select id="tem-combustivel">
-                    <option value="nao">Não</option>
-                    <option value="sim">Sim</option>
-                </select>
-            </div>
-
-            <div id="bloco-combustivel" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-bottom: 15px;">
-                <div style="margin-bottom: 10px;">
-                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor por Litro (R$):</label>
-                    <input type="number" step="0.01" id="valor-litro" placeholder="Ex: 6.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                </div>
-                <div>
-                    <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Quantidade (Litros):</label>
-                    <input type="number" step="0.1" id="combustivel-litros" placeholder="Ex: 15.5" style="width: 100%; padding: 6px; box-sizing: border-box;">
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-bottom: 0;">
-                <label for="tem-despesas">Adicionar Outras Despesas (Pedágios, Alimentação, Hospedagem)?</label>
-                <select id="tem-despesas">
-                    <option value="nao">Não</option>
-                    <option value="sim">Sim</option>
-                </select>
-            </div>
-
-            <div id="bloco-despesas" style="display: none; background: #FFF; padding: 12px; border-radius: 4px; border: 1px solid #CBD5E1; margin-top: 10px;">
-                <label style="display: block; font-weight: bold; margin-bottom: 3px; font-size: 12px;">Valor Total de Outras Despesas (R$):</label>
-                <input type="number" step="0.01" id="valor-adicional" placeholder="Ex: 45.00" style="width: 100%; padding: 6px; box-sizing: border-box;">
-            </div>
+        <div style="margin-bottom: 15px;">
+          <label for="repDesc"><strong>Descrição Detalhada do Serviço Realizado:</strong></label>
+          <textarea id="repDesc" rows="5" placeholder="Descreva detalhadamente o que foi executado..." required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
         </div>
 
-        <!-- ANEXOS DINÂMICOS -->
-        <div style="background: #F8FAFC; padding: 15px; border-radius: 6px; margin-bottom: 20px; border: 1px solid #CBD5E1;">
-            <label style="display: block; font-weight: bold; margin-bottom: 10px; color: var(--deep-navy);">Anexos / Fotos do Equipamento (Compactação Automática)</label>
-            <div id="container-anexos" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 10px;">
-                <div class="anexo-row" style="display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;">
-                    <input type="text" placeholder="Descrição da foto (Ex: Antes da Intervenção)" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
-                    <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
-                </div>
+        <!-- COBRANÇA / HORAS / CUSTOS -->
+        <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
+          <h3 style="font-size: 1rem; margin-bottom: 10px; color: var(--deep-navy);">Critérios de Cobrança</h3>
+          
+          <div style="margin-bottom: 8px;">
+            <label><input type="checkbox" id="checkEmpreitada" onchange="toggleEmpreitada()"> Cobrança em regime de Empreitada (Valor Fechado)</label>
+          </div>
+
+          <div id="boxEmpreitada" style="display: none; margin-bottom: 10px;">
+            <label for="repValorEmpreitada">Valor Total da Empreitada (R$):</label>
+            <input type="number" step="0.01" id="repValorEmpreitada" value="0.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
+
+          <div id="boxHorasDetalhe">
+            <div style="margin-bottom: 8px;">
+              <label><input type="checkbox" id="checkHora" checked onchange="toggleHoras()"> Cobrar Horas de Trabalho</label>
             </div>
-            <button type="button" id="btn-adicionar-anexo" class="btn" style="background: var(--tech-blue); padding: 6px 12px; font-size: 0.85rem;">+ Adicionar outro anexo</button>
+            <div id="inputsHoras" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+              <div>
+                <label>Início / Fim Manhã:</label>
+                <div style="display: flex; gap: 5px;">
+                  <input type="time" id="startManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                  <input type="time" id="endManha" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                </div>
+              </div>
+              <div>
+                <label>Início / Fim Tarde:</label>
+                <div style="display: flex; gap: 5px;">
+                  <input type="time" id="startTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                  <input type="time" id="endTarde" style="width:50%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+                </div>
+              </div>
+            </div>
+            <div style="margin-bottom: 10px;">
+              <label for="repValorHora">Valor da Hora (R$):</label>
+              <input type="number" step="0.01" id="repValorHora" value="200.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 15px; flex-wrap: wrap; border-top: 1px solid #E2E8F0; padding-top: 8px; margin-top: 8px;">
+            <label><input type="checkbox" id="checkKm" onchange="toggleKm()"> Quilometragem</label>
+            <label><input type="checkbox" id="checkCombustivel" onchange="toggleCombustivel()"> Combustível</label>
+            <label><input type="checkbox" id="checkDespesas" onchange="toggleDespesas()"> Outras Despesas / Pedágio</label>
+          </div>
+
+          <div id="inputsKm" style="display: none; margin-top: 8px; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <div><label>KM Ida:</label><input type="number" id="kmIda" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+            <div><label>KM Volta:</label><input type="number" id="kmVolta" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+            <div><label>Valor/KM (R$):</label><input type="number" step="0.01" id="valorKm" value="2.50" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+          </div>
+
+          <div id="inputsCombustivel" style="display: none; margin-top: 8px; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div><label>Litros:</label><input type="number" step="0.1" id="combustivelLitros" value="0" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+            <div><label>Valor/Litro (R$):</label><input type="number" step="0.01" id="valorLitro" value="6.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;"></div>
+          </div>
+
+          <div id="inputsDespesas" style="display: none; margin-top: 8px;">
+            <label>Valor Adicional (R$):</label><input type="number" step="0.01" id="valorAdicional" value="0.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px;">
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="technician-name">Técnico Responsável</label>
-          <input type="text" id="technician-name" required>
+        <!-- ASSINATURA DO CLIENTE APENAS -->
+        <div style="margin-bottom: 15px;">
+          <label><strong>Assinatura do Cliente:</strong></label>
+          <canvas id="clientCanvas" class="signature-pad" width="400" height="150"></canvas>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 4px 10px; font-size: 0.8rem;" onclick="clearClientSig()">Limpar Assinatura do Cliente</button>
         </div>
 
-        <div class="form-group">
-          <label for="description">Descrição dos Trabalhos Realizados</label>
-          <textarea id="description" rows="4" required placeholder="Descreva detalhadamente o serviço executado..."></textarea>
+        <!-- ANEXOS DE FOTOS -->
+        <div style="margin-bottom: 20px;">
+          <h3>📸 Fotografias / Anexos do Equipamento</h3>
+          <div style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+            <input type="text" id="anexoTitulo" placeholder="Título da foto (Ex: Placa de identificação)" style="flex: 2; padding: 8px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <input type="file" id="anexoFile" accept="image/*" style="flex: 2; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; background: #FFF;" onchange="converterAnexo(event)">
+            <button type="button" class="btn" style="background-color: #1D4ED8; color: #FFF; padding: 8px 15px;" onclick="adicionarAnexo()">Adicionar Foto</button>
+          </div>
+          <div id="listaAnexos" style="display: flex; flex-direction: column; gap: 8px;"></div>
         </div>
 
-        <div class="form-group">
-          <label for="payment-terms">Condição de Pagamento (Dias)</label>
-          <input type="text" id="payment-terms" placeholder="Ex: 30" required>
-        </div>
-
-        <!-- Assinaturas -->
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Assinatura do Técnico Responsável</label>
-          <canvas id="tech-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
-          <button type="button" id="clear-tech" class="btn" style="margin-top: 5px; background: var(--slate-gray); padding: 5px 12px; font-size: 0.85rem;">Limpar Assinatura</button>
-        </div>
-
-        <div class="form-group" style="margin-top: 15px;">
-          <label>Assinatura do Cliente</label>
-          <canvas id="client-pad" style="border: 1px solid #CBD5E1; width: 100%; height: 140px; background: #FFF; touch-action: none; border-radius: 6px;"></canvas>
-          <button type="button" id="clear-client" class="btn" style="margin-top: 5px; background: var(--slate-gray); padding: 5px 12px; font-size: 0.85rem;">Limpar Assinatura</button>
-        </div>
-
-        <div style="margin-top: 25px;">
-          <button type="submit" id="submitBtn" class="btn btn-cyan" style="width: 100%; padding: 12px; font-size: 1.1rem;">Guardar Relatório de Serviço</button>
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" class="btn" style="background-color: #00F5D4; color: #0B132B; font-weight: bold; padding: 10px 20px;">Salvar Relatório de Serviço</button>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 10px 20px;" onclick="resetForm()">Cancelar / Limpar</button>
         </div>
       </form>
     </section>
   </main>
 
-  <footer>
+  <footer class="no-print">
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
   <script>
-    function comprimirImagem(file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target.result;
-          img.onload = () => {
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-            if (width > height) {
-              if (width > maxWidth) { height *= maxWidth / width; width = maxWidth; }
-            } else {
-              if (height > maxHeight) { width *= maxHeight / height; height = maxHeight; }
-            }
-            canvas.width = width; canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-            canvas.toBlob((blob) => {
-              if (!blob) { reject(new Error('Erro ao comprimir imagem.')); return; }
-              resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
-            }, 'image/jpeg', quality);
-          };
-          img.onerror = (error) => reject(error);
-        };
-        reader.onerror = (error) => reject(error);
-      });
+    let anexosList = [];
+    let clientCanvas = document.getElementById('clientCanvas');
+    let clientCtx = clientCanvas.getContext('2d');
+    let paintingClient = false;
+    let tempAnexoBase64 = '';
+
+    function startClient(e) { paintingClient = true; drawClient(e); }
+    function finishClient() { paintingClient = false; clientCtx.beginPath(); }
+    function drawClient(e) {
+      if (!paintingClient) return;
+      clientCtx.lineWidth = 2;
+      clientCtx.lineCap = 'round';
+      clientCtx.strokeStyle = '#0B132B';
+      const rect = clientCanvas.getBoundingClientRect();
+      const x = (e.clientX || e.touches[0].clientX) - rect.left;
+      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+      clientCtx.lineTo(x, y);
+      clientCtx.stroke();
+      clientCtx.beginPath();
+      clientCtx.moveTo(x, y);
     }
 
-    function fileToDataURL(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = (error) => reject(error);
-        reader.readAsDataURL(file);
-      });
+    clientCanvas.addEventListener('mousedown', startClient);
+    clientCanvas.addEventListener('mouseup', finishClient);
+    clientCanvas.addEventListener('mousemove', drawClient);
+    clientCanvas.addEventListener('touchstart', startClient);
+    clientCanvas.addEventListener('touchend', finishClient);
+    clientCanvas.addEventListener('touchmove', drawClient);
+
+    window.clearClientSig = function() {
+      clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
+    };
+
+    function toggleEmpreitada() {
+      const sim = document.getElementById('checkEmpreitada').checked;
+      document.getElementById('boxEmpreitada').style.display = sim ? 'block' : 'none';
+      document.getElementById('boxHorasDetalhe').style.display = sim ? 'none' : 'block';
     }
 
-    document.getElementById('tem-empreitada').addEventListener('change', function() {
-        const isEmpreitada = this.value === 'sim';
-        document.getElementById('bloco-empreitada').style.display = isEmpreitada ? 'block' : 'none';
-        document.getElementById('bloco-horas-geral').style.display = isEmpreitada ? 'none' : 'block';
-    });
+    function toggleHoras() {
+      document.getElementById('inputsHoras').style.display = document.getElementById('checkHora').checked ? 'grid' : 'none';
+    }
+    function toggleKm() {
+      document.getElementById('inputsKm').style.display = document.getElementById('checkKm').checked ? 'grid' : 'none';
+    }
+    function toggleCombustivel() {
+      document.getElementById('inputsCombustivel').style.display = document.getElementById('checkCombustivel').checked ? 'grid' : 'none';
+    }
+    function toggleDespesas() {
+      document.getElementById('inputsDespesas').style.display = document.getElementById('checkDespesas').checked ? 'block' : 'none';
+    }
 
-    document.getElementById('tem-hora').addEventListener('change', function() {
-        document.getElementById('bloco-turnos').style.display = this.value === 'sim' ? 'block' : 'none';
-    });
-    document.getElementById('tem-km').addEventListener('change', function() {
-        document.getElementById('bloco-km').style.display = this.value === 'sim' ? 'block' : 'none';
-    });
-    document.getElementById('tem-combustivel').addEventListener('change', function() {
-        document.getElementById('bloco-combustivel').style.display = this.value === 'sim' ? 'block' : 'none';
-    });
-    document.getElementById('tem-despesas').addEventListener('change', function() {
-        document.getElementById('bloco-despesas').style.display = this.value === 'sim' ? 'block' : 'none';
-    });
+    function converterAnexo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        tempAnexoBase64 = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
 
-    document.getElementById('btn-adicionar-anexo').addEventListener('click', function() {
-        const container = document.getElementById('container-anexos');
-        const novaLinha = document.createElement('div');
-        novaLinha.className = 'anexo-row';
-        novaLinha.style.cssText = 'display: flex; gap: 10px; align-items: center; background: #FFF; padding: 10px; border-radius: 4px; border: 1px solid #CBD5E1; flex-wrap: wrap;';
-        novaLinha.innerHTML = `
-            <input type="text" placeholder="Descrição da foto" class="anexo-titulo" style="flex: 2; min-width: 180px; padding: 6px; box-sizing: border-box;">
-            <input type="file" accept="image/*" class="anexo-ficheiro" style="flex: 2; min-width: 180px; padding: 4px;">
-            <button type="button" onclick="this.parentElement.remove()" class="btn" style="background: #EF4444; padding: 6px 10px; font-size: 0.8rem;">X</button>
+    window.adicionarAnexo = function() {
+      const titulo = document.getElementById('anexoTitulo').value;
+      if (!tempAnexoBase64) { alert('Selecione uma imagem primeiro.'); return; }
+      anexosList.push({ titulo: titulo || 'Foto do Equipamento', imagem: tempAnexoBase64 });
+      document.getElementById('anexoTitulo').value = '';
+      document.getElementById('anexoFile').value = '';
+      tempAnexoBase64 = '';
+      renderizarAnexos();
+    };
+
+    window.removerAnexo = function(index) {
+      anexosList.splice(index, 1);
+      renderizarAnexos();
+    };
+
+    function renderizarAnexos() {
+      const container = document.getElementById('listaAnexos');
+      container.innerHTML = '';
+      anexosList.forEach((a, idx) => {
+        container.innerHTML += `
+          <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; border: 1px solid #CBD5E1; padding: 6px 10px; border-radius: 4px;">
+            <span><strong>${idx + 1}.</strong> ${a.titulo}</span>
+            <button type="button" class="btn" style="background-color: #EF4444; padding: 2px 6px; font-size: 0.75rem;" onclick="removerAnexo(${idx})">Remover</button>
+          </div>
         `;
-        container.appendChild(novaLinha);
-    });
-
-    const clientSelect = document.getElementById('reportClient');
-    const machineSelect = document.getElementById('machineSelect');
-    const equipmentInput = document.getElementById('equipment');
-    const brandInput = document.getElementById('brand');
-    const modelInput = document.getElementById('model');
-    const serialInput = document.getElementById('serial-number');
-    const reportNumberInput = document.getElementById('reportNumber');
-    const reportDateInput = document.getElementById('reportDate');
-    const techNameInput = document.getElementById('technician-name');
-
-    reportDateInput.valueAsDate = new Date();
-
-    let clients = [];
-    let machines = [];
-    let reports = [];
-    let config = { nextRs: '1001', tech: 'Otávio Barbosa' };
-
-    const techCanvas = document.getElementById('tech-pad');
-    const clientCanvas = document.getElementById('client-pad');
-    const techPad = new SignaturePad(techCanvas);
-    const clientPad = new SignaturePad(clientCanvas);
-
-    document.getElementById('clear-tech').addEventListener('click', () => techPad.clear());
-    document.getElementById('clear-client').addEventListener('click', () => clientPad.clear());
-
-    function resizeCanvases() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      techCanvas.width = techCanvas.offsetWidth * ratio;
-      techCanvas.height = techCanvas.offsetHeight * ratio;
-      techCanvas.getContext("2d").scale(ratio, ratio);
-      techPad.clear();
-
-      clientCanvas.width = clientCanvas.offsetWidth * ratio;
-      clientCanvas.height = clientCanvas.offsetHeight * ratio;
-      clientCanvas.getContext("2d").scale(ratio, ratio);
-      clientPad.clear();
+      });
     }
-    window.addEventListener("resize", resizeCanvases);
-    resizeCanvases();
+
+    async function loadClients() {
+      const select = document.getElementById('repClient');
+      if (!select) return;
+      try {
+        const clients = await DataSync.load('rg_clients') || [];
+        select.innerHTML = '<option value="">Selecione um cliente...</option>';
+        clients.forEach(c => { select.innerHTML += `<option value="${c.name}">${c.name}</option>`; });
+      } catch (e) { console.error("Erro ao carregar clientes", e); }
+    }
 
     document.addEventListener("DOMContentLoaded", async () => {
-      try {
-        clients = await DataSync.load('rg_clients') || [];
-        machines = await DataSync.load('rg_machines') || [];
-        reports = await DataSync.load('rg_relatorios') || [];
-        const savedCfg = await DataSync.load('rg_config');
-        if (savedCfg) config = { ...config, ...savedCfg };
+      document.getElementById('repDate').valueAsDate = new Date();
+      await loadClients();
 
-        if (techNameInput && !techNameInput.value) {
-          techNameInput.value = config.tech || 'Otávio Barbosa';
-        }
+      const urlParams = new URLSearchParams(window.location.search);
+      const editIndex = urlParams.get('edit');
+      if (editIndex !== null) {
+        try {
+          let reports = await DataSync.load('rg_reports') || [];
+          const rep = reports[editIndex];
+          if (rep) {
+            document.getElementById('editIndex').value = editIndex;
+            document.getElementById('formTitle').textContent = `Editar Relatório - ${rep.number}`;
+            document.getElementById('repNumber').value = rep.number || '';
+            document.getElementById('repDate').value = rep.date || '';
+            document.getElementById('repClient').value = rep.client || '';
+            document.getElementById('repEquipment').value = rep.equipment || '';
+            document.getElementById('repBrand').value = rep.brand || '';
+            document.getElementById('repModel').value = rep.model || '';
+            document.getElementById('repSerialNumber').value = rep.serialNumber || '';
+            document.getElementById('repServiceNature').value = rep.serviceNature || 'Corretiva';
+            document.getElementById('repServiceArea').value = rep.serviceArea || '';
+            document.getElementById('repDesc').value = rep.desc || '';
+            
+            if (rep.temEmpreitada === 'sim') {
+              document.getElementById('checkEmpreitada').checked = true;
+              document.getElementById('repValorEmpreitada').value = rep.valorEmpreitada || 0;
+              toggleEmpreitada();
+            }
+            if (rep.temHora === 'no') {
+              document.getElementById('checkHora').checked = false;
+              toggleHoras();
+            } else {
+              document.getElementById('startManha').value = rep.startManha || '';
+              document.getElementById('endManha').value = rep.endManha || '';
+              document.getElementById('startTarde').value = rep.startTarde || '';
+              document.getElementById('endTarde').value = rep.endTarde || '';
+              document.getElementById('repValorHora').value = rep.valorHora || 200.00;
+            }
+            if (rep.temKm === 'sim') {
+              document.getElementById('checkKm').checked = true;
+              document.getElementById('kmIda').value = rep.kmIda || 0;
+              document.getElementById('kmVolta').value = rep.kmVolta || 0;
+              document.getElementById('valorKm').value = rep.valorKm || 2.50;
+              toggleKm();
+            }
+            if (rep.temCombustivel === 'sim') {
+              document.getElementById('checkCombustivel').checked = true;
+              document.getElementById('combustivelLitros').value = rep.combustivelLitros || 0;
+              document.getElementById('valorLitro').value = rep.valorLitro || 6.00;
+              toggleCombustivel();
+            }
+            if (rep.temDespesas === 'sim') {
+              document.getElementById('checkDespesas').checked = true;
+              document.getElementById('valorAdicional').value = rep.valorAdicional || 0;
+              toggleDespesas();
+            }
 
-        let nextNum = 1001;
-        if (reports.length > 0) {
-          const numbers = reports.map(r => parseInt(r.number)).filter(n => !isNaN(n));
-          if (numbers.length > 0) nextNum = Math.max(...numbers) + 1;
-        } else if (config.nextRsNumber) {
-          nextNum = parseInt(config.nextRsNumber);
-        }
-        reportNumberInput.value = nextNum;
-
-        clientSelect.innerHTML = '<option value="">Selecione um cliente...</option>';
-        clients.forEach(c => {
-          clientSelect.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-        });
-      } catch (e) {
-        console.error("Erro ao carregar dados:", e);
-      }
-    });
-
-    clientSelect.addEventListener('change', function() {
-      const selectedClient = this.value;
-      machineSelect.innerHTML = '<option value="">Selecione uma máquina cadastrada...</option>';
-      machines.forEach((m, index) => {
-        if (m.client === selectedClient) {
-          machineSelect.innerHTML += `<option value="${index}">${m.name} (${m.brand || ''} - ${m.model || ''})</option>`;
-        }
-      });
-    });
-
-    machineSelect.addEventListener('change', function() {
-      const machineIndex = this.value;
-      if (machineIndex === "") return;
-      const m = machines[machineIndex];
-      if (m) {
-        equipmentInput.value = m.name || '';
-        brandInput.value = m.brand || '';
-        modelInput.value = m.model || '';
-        serialInput.value = m.serial || '';
-      }
-    });
-
-    document.getElementById('reportForm').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const submitBtn = document.getElementById('submitBtn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '⏳ A processar e otimizar imagens...';
-
-      try {
-        const anexoRows = document.querySelectorAll('.anexo-row');
-        const anexosProcessados = [];
-
-        for (const row of anexoRows) {
-          const tituloInput = row.querySelector('.anexo-titulo');
-          const fileInput = row.querySelector('.anexo-ficheiro');
-          if (fileInput.files && fileInput.files[0]) {
-            const fotoComprimida = await comprimirImagem(fileInput.files[0], 1200, 1200, 0.8);
-            const base64 = await fileToDataURL(fotoComprimida);
-            anexosProcessados.push({
-              title: tituloInput.value.trim() || 'Foto do Equipamento',
-              url: base64
-            });
+            if (rep.signature) {
+              const img = new Image();
+              img.onload = () => { clientCtx.drawImage(img, 0, 0); };
+              img.src = rep.signature;
+            }
+            if (rep.anexos && Array.isArray(rep.anexos)) {
+              anexosList = rep.anexos;
+              renderizarAnexos();
+            }
           }
+        } catch (e) {
+          console.error("Erro ao carregar relatório para edição", e);
+        }
+      } else {
+        try {
+          let reports = await DataSync.load('rg_reports') || [];
+          let config = await DataSync.load('rg_config') || {};
+          let nextNum = config.nextRsNumber ? Number(config.nextRsNumber) : (1000 + reports.length);
+          document.getElementById('repNumber').value = `RS-${nextNum}`;
+        } catch (e) {
+          document.getElementById('repNumber').value = 'RS-1000';
+        }
+      }
+    });
+
+    document.getElementById('reportForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const editIndex = document.getElementById('editIndex').value;
+
+      const clientSigData = clientCanvas.toDataURL();
+
+      const reportData = {
+        number: document.getElementById('repNumber').value,
+        date: document.getElementById('repDate').value,
+        client: document.getElementById('repClient').value,
+        equipment: document.getElementById('repEquipment').value,
+        brand: document.getElementById('repBrand').value,
+        model: document.getElementById('repModel').value,
+        serialNumber: document.getElementById('repSerialNumber').value,
+        serviceNature: document.getElementById('repServiceNature').value,
+        serviceArea: document.getElementById('repServiceArea').value,
+        desc: document.getElementById('repDesc').value,
+        
+        temEmpreitada: document.getElementById('checkEmpreitada').checked ? 'sim' : 'no',
+        valorEmpreitada: document.getElementById('repValorEmpreitada').value,
+        temHora: document.getElementById('checkHora').checked ? 'sim' : 'no',
+        startManha: document.getElementById('startManha').value,
+        endManha: document.getElementById('endManha').value,
+        startTarde: document.getElementById('startTarde').value,
+        endTarde: document.getElementById('endTarde').value,
+        valorHora: document.getElementById('repValorHora').value,
+
+        temKm: document.getElementById('checkKm').checked ? 'sim' : 'no',
+        kmIda: document.getElementById('kmIda').value,
+        kmVolta: document.getElementById('kmVolta').value,
+        valorKm: document.getElementById('valorKm').value,
+
+        temCombustivel: document.getElementById('checkCombustivel').checked ? 'sim' : 'no',
+        combustivelLitros: document.getElementById('combustivelLitros').value,
+        valorLitro: document.getElementById('valorLitro').value,
+
+        temDespesas: document.getElementById('checkDespesas').checked ? 'sim' : 'no',
+        valorAdicional: document.getElementById('valorAdicional').value,
+
+        signature: clientSigData,
+        anexos: anexosList
+      };
+
+      try {
+        let reports = await DataSync.load('rg_reports') || [];
+        if (!Array.isArray(reports)) reports = [];
+
+        if (editIndex !== '') {
+          reports[editIndex] = reportData;
+        } else {
+          reports.push(reportData);
+          let config = await DataSync.load('rg_config') || {};
+          let currentNext = config.nextRsNumber ? Number(config.nextRsNumber) : 1000;
+          config.nextRsNumber = String(currentNext + 1);
+          await DataSync.save('rg_config', config);
         }
 
-        const newReport = {
-          number: reportNumberInput.value,
-          date: reportDateInput.value,
-          client: clientSelect.value,
-          equipment: equipmentInput.value,
-          brand: brandInput.value,
-          model: modelInput.value,
-          serial: serialInput.value,
-          nature: document.getElementById('service-nature').value,
-          area: document.getElementById('service-area').value,
-          empreitada: document.getElementById('tem-empreitada').value,
-          valorEmpreitada: document.getElementById('valor-empreitada').value,
-          temHora: document.getElementById('tem-hora').value,
-          valorHora: document.getElementById('valor-hora').value,
-          startManha: document.getElementById('time-start-manha').value,
-          endManha: document.getElementById('time-end-manha').value,
-          startTarde: document.getElementById('time-start-tarde').value,
-          endTarde: document.getElementById('time-end-tarde').value,
-          temKm: document.getElementById('tem-km').value,
-          valorKm: document.getElementById('valor-km').value,
-          kmIda: document.getElementById('km-ida').value,
-          kmVolta: document.getElementById('km-volta').value,
-          temCombustivel: document.getElementById('tem-combustivel').value,
-          valorLitro: document.getElementById('valor-litro').value,
-          litros: document.getElementById('combustivel-litros').value,
-          temDespesas: document.getElementById('tem-despesas').value,
-          valorAdicional: document.getElementById('valor-adicional').value,
-          technician: techNameInput.value,
-          description: document.getElementById('description').value,
-          paymentTerms: document.getElementById('payment-terms').value,
-          techSignature: techPad.isEmpty() ? '' : techPad.toDataURL(),
-          signature: clientPad.isEmpty() ? '' : clientPad.toDataURL(),
-          anexos: anexosProcessados
-        };
-
-        reports.push(newReport);
-        await DataSync.save('rg_relatorios', reports);
-
-        alert('Relatório guardado e sincronizado com sucesso!');
+        await DataSync.save('rg_reports', reports);
+        alert('Relatório de serviço salvo e sincronizado com sucesso!');
         window.location.href = 'historico.html';
       } catch (err) {
-        console.error("Erro ao guardar relatório:", err);
-        alert('Erro ao guardar o relatório: ' + err.message);
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Guardar Relatório de Serviço';
+        alert('Erro ao salvar relatório: ' + err.message);
       }
     });
+
+    window.resetForm = function() {
+      document.getElementById('reportForm').reset();
+      document.getElementById('editIndex').value = '';
+      document.getElementById('formTitle').textContent = 'Novo Relatório de Serviço (RS)';
+      document.getElementById('repDate').valueAsDate = new Date();
+      clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
+      anexosList = [];
+      renderizarAnexos();
+    };
   </script>
 </body>
 </html>
