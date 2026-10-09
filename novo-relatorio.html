@@ -74,10 +74,12 @@
           <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
         </div>
 
-        <!-- EQUIPAMENTO / MÁQUINA (PUXA AUTOMATICAMENTE DO CLIENTE) -->
+        <!-- EQUIPAMENTO / MÁQUINA (SELECT DINÂMICO BASEADO NO CLIENTE) -->
         <div style="margin-bottom: 12px;">
           <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
-          <input type="text" id="repEquipment" placeholder="Ex: Laser Fibra 3000W" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+          <select id="repEquipment" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;">
+            <option value="">Selecione primeiro um cliente...</option>
+          </select>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
@@ -238,6 +240,7 @@
 
   <script>
     let anexosList = [];
+    let clientMachines = [];
     let clientCanvas = document.getElementById('clientCanvas');
     let clientCtx = clientCanvas.getContext('2d');
     let paintingClient = false;
@@ -335,21 +338,46 @@
       } catch (e) { console.error("Erro ao carregar clientes", e); }
     }
 
-    // Puxar máquina associada ao cliente selecionado
-    document.getElementById('repClient').addEventListener('change', async function() {
-      const clientName = this.value;
+    async function carregarMaquinasDoCliente(clientName, selectedEquipment = '') {
+      const eqSelect = document.getElementById('repEquipment');
+      eqSelect.innerHTML = '<option value="">Selecione a máquina...</option>';
+      clientMachines = [];
+
       if (!clientName) return;
       try {
         const machines = await DataSync.load('rg_machines') || [];
-        const machine = machines.find(m => m.client === clientName || m.cliente === clientName);
-        if (machine) {
-          document.getElementById('repEquipment').value = machine.equipment || machine.nome || machine.name || '';
-          document.getElementById('repBrand').value = machine.brand || machine.marca || '';
-          document.getElementById('repModel').value = machine.model || machine.modelo || '';
-          document.getElementById('repSerialNumber').value = machine.serialNumber || machine.serie || machine.matricula || '';
-        }
+        clientMachines = machines.filter(m => m.client === clientName || m.cliente === clientName);
+        
+        clientMachines.forEach((m, idx) => {
+          const eqName = m.equipment || m.nome || m.name || `Máquina ${idx+1}`;
+          const isSelected = (eqName === selectedEquipment) ? 'selected' : '';
+          eqSelect.innerHTML += `<option value="${eqName}" data-index="${idx}" ${isSelected}>${eqName}</option>`;
+        });
       } catch (e) {
-        console.error("Erro ao carregar máquina do cliente", e);
+        console.error("Erro ao carregar máquinas do cliente", e);
+      }
+    }
+
+    document.getElementById('repClient').addEventListener('change', async function() {
+      const clientName = this.value;
+      document.getElementById('repBrand').value = '';
+      document.getElementById('repModel').value = '';
+      document.getElementById('repSerialNumber').value = '';
+      await carregarMaquinasDoCliente(clientName);
+    });
+
+    document.getElementById('repEquipment').addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      const idx = selectedOption.getAttribute('data-index');
+      if (idx !== null && clientMachines[idx]) {
+        const m = clientMachines[idx];
+        document.getElementById('repBrand').value = m.brand || m.marca || '';
+        document.getElementById('repModel').value = m.model || m.modelo || '';
+        document.getElementById('repSerialNumber').value = m.serialNumber || m.serie || m.matricula || '';
+      } else {
+        document.getElementById('repBrand').value = '';
+        document.getElementById('repModel').value = '';
+        document.getElementById('repSerialNumber').value = '';
       }
     });
 
@@ -369,7 +397,9 @@
             document.getElementById('repNumber').value = rep.number || '';
             document.getElementById('repDate').value = rep.date || '';
             document.getElementById('repClient').value = rep.client || '';
-            document.getElementById('repEquipment').value = rep.equipment || '';
+            
+            await carregarMaquinasDoCliente(rep.client, rep.equipment);
+
             document.getElementById('repBrand').value = rep.brand || '';
             document.getElementById('repModel').value = rep.model || '';
             document.getElementById('repSerialNumber').value = rep.serialNumber || '';
@@ -513,6 +543,7 @@
       document.getElementById('editIndex').value = '';
       document.getElementById('formTitle').textContent = 'Novo Relatório de Serviço (RS)';
       document.getElementById('repDate').valueAsDate = new Date();
+      document.getElementById('repEquipment').innerHTML = '<option value="">Selecione primeiro um cliente...</option>';
       toggleHoraSelect();
       toggleKmSelect();
       toggleCombustivelSelect();
