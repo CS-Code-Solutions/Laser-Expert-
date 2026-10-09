@@ -74,7 +74,7 @@
           <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
         </div>
 
-        <!-- EQUIPAMENTO / MÁQUINA ABAIXO DO CLIENTE -->
+        <!-- EQUIPAMENTO / MÁQUINA (PUXA AUTOMATICAMENTE DO CLIENTE) -->
         <div style="margin-bottom: 12px;">
           <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
           <input type="text" id="repEquipment" placeholder="Ex: Laser Fibra 3000W" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
@@ -334,6 +334,24 @@
         clients.forEach(c => { select.innerHTML += `<option value="${c.name}">${c.name}</option>`; });
       } catch (e) { console.error("Erro ao carregar clientes", e); }
     }
+
+    // Puxar máquina associada ao cliente selecionado
+    document.getElementById('repClient').addEventListener('change', async function() {
+      const clientName = this.value;
+      if (!clientName) return;
+      try {
+        const machines = await DataSync.load('rg_machines') || [];
+        const machine = machines.find(m => m.client === clientName || m.cliente === clientName);
+        if (machine) {
+          document.getElementById('repEquipment').value = machine.equipment || machine.nome || machine.name || '';
+          document.getElementById('repBrand').value = machine.brand || machine.marca || '';
+          document.getElementById('repModel').value = machine.model || machine.modelo || '';
+          document.getElementById('repSerialNumber').value = machine.serialNumber || machine.serie || machine.matricula || '';
+        }
+      } catch (e) {
+        console.error("Erro ao carregar máquina do cliente", e);
+      }
+    });
 
     document.addEventListener("DOMContentLoaded", async () => {
       document.getElementById('repDate').valueAsDate = new Date();
