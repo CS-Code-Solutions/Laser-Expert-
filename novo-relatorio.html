@@ -68,13 +68,11 @@
           </div>
         </div>
 
-        <!-- CLIENTE EM LINHA INTEIRA -->
         <div style="margin-bottom: 12px;">
           <label for="repClient"><strong>Cliente:</strong></label>
           <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
         </div>
 
-        <!-- EQUIPAMENTO / MÁQUINA (SELECT DINÂMICO BASEADO NO CLIENTE) -->
         <div style="margin-bottom: 12px;">
           <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
           <select id="repEquipment" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;">
@@ -123,6 +121,21 @@
         <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
           <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--deep-navy);">Critérios de Cobrança e Deslocamento</h3>
           
+          <!-- Regime de Empreitada -->
+          <div style="margin-bottom: 12px;">
+            <label for="selectEmpreitada"><strong>Regime de Empreitada (Valor Fechado)?</strong></label>
+            <select id="selectEmpreitada" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleEmpreitadaSelect()">
+              <option value="nao">Não</option>
+              <option value="sim">Sim</option>
+            </select>
+          </div>
+
+          <div id="boxEmpreitadaDetalhes" style="display: none; margin-bottom: 12px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label for="repValorEmpreitada">Valor Total da Empreitada (R$):</label>
+            <input type="number" step="0.01" id="repValorEmpreitada" value="0.00" placeholder="Ex: 1500.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+          </div>
+
+          <!-- Cobrar Hora Trabalhada -->
           <div style="margin-bottom: 12px;">
             <label for="selectHora"><strong>Cobrar Hora Trabalhada?</strong></label>
             <select id="selectHora" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleHoraSelect()">
@@ -152,6 +165,7 @@
             </div>
           </div>
 
+          <!-- Cobrar Km Rodado -->
           <div style="margin-bottom: 12px;">
             <label for="selectKm"><strong>Cobrar Km Rodado?</strong></label>
             <select id="selectKm" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleKmSelect()">
@@ -175,6 +189,7 @@
             </div>
           </div>
 
+          <!-- Adicionar Combustível -->
           <div style="margin-bottom: 12px;">
             <label for="selectCombustivel"><strong>Adicionar Combustível?</strong></label>
             <select id="selectCombustivel" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleCombustivelSelect()">
@@ -194,17 +209,24 @@
             </div>
           </div>
 
-          <div style="margin-bottom: 4px;">
-            <label for="selectDespesas"><strong>Adicionar Outras Despesas (Pedágios, Alimentação, Hospedagem)?</strong></label>
-            <select id="selectDespesas" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleDespesasSelect()">
-              <option value="nao">Não</option>
-              <option value="sim">Sim</option>
-            </select>
-          </div>
+          <!-- Despesas Divididas (Pedágio, Hospedagem e Outras) -->
+          <div style="background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
+            <label style="font-weight: bold; margin-bottom: 8px; display: block; color: var(--deep-navy);">Despesas Operacionais (Pedágio, Hospedagem, etc.):</label>
+            
+            <div style="margin-bottom: 8px;">
+              <label for="valorPedagio">Pedágio (R$):</label>
+              <input type="number" step="0.01" id="valorPedagio" value="0.00" placeholder="Ex: 30.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
 
-          <div id="boxDespesasDetalhes" style="display: none; margin-top: 10px; background: #FFF; padding: 10px; border: 1px solid #CBD5E1; border-radius: 4px;">
-            <label for="valorAdicional">Valor Adicional (R$):</label>
-            <input type="number" step="0.01" id="valorAdicional" value="0.00" placeholder="Ex: 100.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            <div style="margin-bottom: 8px;">
+              <label for="valorHospedagem">Hospedagem (R$):</label>
+              <input type="number" step="0.01" id="valorHospedagem" value="0.00" placeholder="Ex: 150.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
+
+            <div>
+              <label for="valorOutras">Outras Despesas / Alimentação (R$):</label>
+              <input type="number" step="0.01" id="valorOutras" value="0.00" placeholder="Ex: 50.00" style="width:100%; padding:6px; border:1px solid #CBD5E1; border-radius:4px; margin-top: 2px;">
+            </div>
           </div>
         </div>
 
@@ -273,6 +295,10 @@
       clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
     };
 
+    function toggleEmpreitadaSelect() {
+      const val = document.getElementById('selectEmpreitada').value;
+      document.getElementById('boxEmpreitadaDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
+    }
     function toggleHoraSelect() {
       const val = document.getElementById('selectHora').value;
       document.getElementById('boxHoraDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
@@ -284,10 +310,6 @@
     function toggleCombustivelSelect() {
       const val = document.getElementById('selectCombustivel').value;
       document.getElementById('boxCombustivelDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
-    }
-    function toggleDespesasSelect() {
-      const val = document.getElementById('selectDespesas').value;
-      document.getElementById('boxDespesasDetalhes').style.display = (val === 'sim') ? 'block' : 'none';
     }
 
     function converterAnexo(event) {
@@ -407,6 +429,15 @@
             document.getElementById('repServiceArea').value = rep.serviceArea || '';
             document.getElementById('repDesc').value = rep.desc || '';
             
+            if (rep.temEmpreitada === 'sim') {
+              document.getElementById('selectEmpreitada').value = 'sim';
+              toggleEmpreitadaSelect();
+              document.getElementById('repValorEmpreitada').value = rep.valorEmpreitada || 0;
+            } else {
+              document.getElementById('selectEmpreitada').value = 'nao';
+              toggleEmpreitadaSelect();
+            }
+
             if (rep.temHora === 'sim') {
               document.getElementById('selectHora').value = 'sim';
               toggleHoraSelect();
@@ -441,14 +472,9 @@
               toggleCombustivelSelect();
             }
 
-            if (rep.temDespesas === 'sim') {
-              document.getElementById('selectDespesas').value = 'sim';
-              toggleDespesasSelect();
-              document.getElementById('valorAdicional').value = rep.valorAdicional || 0;
-            } else {
-              document.getElementById('selectDespesas').value = 'nao';
-              toggleDespesasSelect();
-            }
+            document.getElementById('valorPedagio').value = rep.valorPedagio || 0;
+            document.getElementById('valorHospedagem').value = rep.valorHospedagem || 0;
+            document.getElementById('valorOutras').value = rep.valorOutras || 0;
 
             if (rep.signature) {
               const img = new Image();
@@ -493,6 +519,9 @@
         serviceArea: document.getElementById('repServiceArea').value,
         desc: document.getElementById('repDesc').value,
         
+        temEmpreitada: document.getElementById('selectEmpreitada').value,
+        valorEmpreitada: document.getElementById('repValorEmpreitada').value,
+
         temHora: document.getElementById('selectHora').value,
         startManha: document.getElementById('startManha').value,
         endManha: document.getElementById('endManha').value,
@@ -509,8 +538,9 @@
         combustivelLitros: document.getElementById('combustivelLitros').value,
         valorLitro: document.getElementById('valorLitro').value,
 
-        temDespesas: document.getElementById('selectDespesas').value,
-        valorAdicional: document.getElementById('valorAdicional').value,
+        valorPedagio: document.getElementById('valorPedagio').value,
+        valorHospedagem: document.getElementById('valorHospedagem').value,
+        valorOutras: document.getElementById('valorOutras').value,
 
         signature: clientSigData,
         anexos: anexosList
@@ -544,10 +574,10 @@
       document.getElementById('formTitle').textContent = 'Novo Relatório de Serviço (RS)';
       document.getElementById('repDate').valueAsDate = new Date();
       document.getElementById('repEquipment').innerHTML = '<option value="">Selecione primeiro um cliente...</option>';
+      toggleEmpreitadaSelect();
       toggleHoraSelect();
       toggleKmSelect();
       toggleCombustivelSelect();
-      toggleDespesasSelect();
       clientCtx.clearRect(0, 0, clientCanvas.width, clientCanvas.height);
       anexosList = [];
       renderizarAnexos();
