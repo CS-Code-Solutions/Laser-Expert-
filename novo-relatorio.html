@@ -108,7 +108,12 @@
           </div>
           <div>
             <label for="repServiceArea"><strong>Área de Serviço:</strong></label>
-            <input type="text" id="repServiceArea" placeholder="Ex: Mecânica / Óptica / Software" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
+            <select id="repServiceArea" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;">
+              <option value="Mecânica">Mecânica</option>
+              <option value="Elétrica">Elétrica</option>
+              <option value="Movimento de Máquina">Movimento de Máquina</option>
+              <option value="Garantia">Garantia</option>
+            </select>
           </div>
         </div>
 
@@ -460,7 +465,7 @@
             document.getElementById('repModel').value = rep.model || '';
             document.getElementById('repSerialNumber').value = rep.serialNumber || '';
             document.getElementById('repServiceNature').value = rep.serviceNature || 'Corretiva';
-            document.getElementById('repServiceArea').value = rep.serviceArea || '';
+            document.getElementById('repServiceArea').value = rep.serviceArea || 'Mecânica';
             document.getElementById('repDesc').value = rep.desc || '';
             
             if (rep.temEmpreitada === 'sim') {
