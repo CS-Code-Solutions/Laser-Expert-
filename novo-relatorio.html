@@ -68,15 +68,16 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-          <div>
-            <label for="repClient"><strong>Cliente:</strong></label>
-            <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
-          </div>
-          <div>
-            <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
-            <input type="text" id="repEquipment" placeholder="Ex: Laser Fibra 3000W" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
-          </div>
+        <!-- CLIENTE EM LINHA INTEIRA -->
+        <div style="margin-bottom: 12px;">
+          <label for="repClient"><strong>Cliente:</strong></label>
+          <select id="repClient" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF;"></select>
+        </div>
+
+        <!-- EQUIPAMENTO / MÁQUINA ABAIXO DO CLIENTE -->
+        <div style="margin-bottom: 12px;">
+          <label for="repEquipment"><strong>Equipamento / Máquina:</strong></label>
+          <input type="text" id="repEquipment" placeholder="Ex: Laser Fibra 3000W" required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px;">
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
@@ -116,11 +117,10 @@
           <textarea id="repDesc" rows="5" placeholder="Descreva detalhadamente o que foi executado..." required style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; font-family:inherit;"></textarea>
         </div>
 
-        <!-- CRITÉRIOS DE COBRANÇA E DESLOCAMENTO (ESTILO DA IMAGEM) -->
+        <!-- CRITÉRIOS DE COBRANÇA E DESLOCAMENTO -->
         <div style="background: #F8FAFC; border: 1px solid #CBD5E1; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
           <h3 style="font-size: 1rem; margin-bottom: 12px; color: var(--deep-navy);">Critérios de Cobrança e Deslocamento</h3>
           
-          <!-- Cobrar Hora Trabalhada -->
           <div style="margin-bottom: 12px;">
             <label for="selectHora"><strong>Cobrar Hora Trabalhada?</strong></label>
             <select id="selectHora" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleHoraSelect()">
@@ -150,7 +150,6 @@
             </div>
           </div>
 
-          <!-- Cobrar Km Rodado -->
           <div style="margin-bottom: 12px;">
             <label for="selectKm"><strong>Cobrar Km Rodado?</strong></label>
             <select id="selectKm" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleKmSelect()">
@@ -174,7 +173,6 @@
             </div>
           </div>
 
-          <!-- Adicionar Combustível -->
           <div style="margin-bottom: 12px;">
             <label for="selectCombustivel"><strong>Adicionar Combustível?</strong></label>
             <select id="selectCombustivel" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleCombustivelSelect()">
@@ -194,7 +192,6 @@
             </div>
           </div>
 
-          <!-- Adicionar Outras Despesas -->
           <div style="margin-bottom: 4px;">
             <label for="selectDespesas"><strong>Adicionar Outras Despesas (Pedágios, Alimentação, Hospedagem)?</strong></label>
             <select id="selectDespesas" class="form-control" style="width:100%; padding:8px; border:1px solid #CBD5E1; border-radius:4px; background:#FFF; margin-top: 4px;" onchange="toggleDespesasSelect()">
@@ -209,14 +206,7 @@
           </div>
         </div>
 
-        <!-- ASSINATURA DO CLIENTE APENAS -->
-        <div style="margin-bottom: 15px;">
-          <label><strong>Assinatura do Cliente:</strong></label>
-          <canvas id="clientCanvas" class="signature-pad" width="400" height="150"></canvas>
-          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 4px 10px; font-size: 0.8rem;" onclick="clearClientSig()">Limpar Assinatura do Cliente</button>
-        </div>
-
-        <!-- ANEXOS DE FOTOS -->
+        <!-- ANEXOS DE FOTOS (ACIMA DA ASSINATURA) -->
         <div style="margin-bottom: 20px;">
           <h3>📸 Fotografias / Anexos do Equipamento</h3>
           <div style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -225,6 +215,13 @@
             <button type="button" class="btn" style="background-color: #1D4ED8; color: #FFF; padding: 8px 15px;" onclick="adicionarAnexo()">Adicionar Foto</button>
           </div>
           <div id="listaAnexos" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
+        <!-- ASSINATURA DO CLIENTE APENAS -->
+        <div style="margin-bottom: 15px;">
+          <label><strong>Assinatura do Cliente:</strong></label>
+          <canvas id="clientCanvas" class="signature-pad" width="400" height="150"></canvas>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 4px 10px; font-size: 0.8rem;" onclick="clearClientSig()">Limpar Assinatura do Cliente</button>
         </div>
 
         <div style="display: flex; gap: 10px;">
