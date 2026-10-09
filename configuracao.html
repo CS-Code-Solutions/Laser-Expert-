@@ -58,6 +58,15 @@
           <input type="text" id="configTech" required>
         </div>
 
+        <!-- ASSINATURA FIXA DO TÉCNICO -->
+        <div class="form-group" style="margin-top: 15px;">
+          <label><strong>Assinatura Fixa do Técnico (Responsável):</strong></label>
+          <div style="border: 1px solid #CBD5E1; background: #FFF; width: 100%; max-width: 400px; border-radius: 4px; overflow: hidden; margin-bottom: 5px;">
+            <canvas id="techSignatureCanvas" width="400" height="150" style="width: 100%; height: 150px; cursor: crosshair; touch-action: none; background: #fff;"></canvas>
+          </div>
+          <button type="button" class="btn" style="background-color: #64748B; color: #FFF; padding: 4px 10px; font-size: 0.8rem;" onclick="limparAssinaturaTech()">Limpar Assinatura do Técnico</button>
+        </div>
+
         <div class="form-group">
           <label for="configDoc">CNPJ / Documento:</label>
           <input type="text" id="configDoc" required>
@@ -169,6 +178,39 @@
   </footer>
 
   <script>
+    const canvas = document.getElementById('techSignatureCanvas');
+    const ctx = canvas.getContext('2d');
+    let painting = false;
+
+    function startPosition(e) { painting = true; draw(e); }
+    function finishedPosition() { painting = false; ctx.beginPath(); }
+    function draw(e) {
+      if (!painting) return;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#0B132B';
+      
+      const rect = canvas.getBoundingClientRect();
+      const x = (e.clientX || e.touches[0].clientX) - rect.left;
+      const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+      ctx.lineTo(x, y);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+    }
+
+    canvas.addEventListener('mousedown', startPosition);
+    canvas.addEventListener('mouseup', finishedPosition);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('touchstart', startPosition);
+    canvas.addEventListener('touchend', finishedPosition);
+    canvas.addEventListener('touchmove', draw);
+
+    window.limparAssinaturaTech = function() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    };
+
     document.addEventListener("DOMContentLoaded", async () => {
       const statusText = document.getElementById('statusText');
       if (typeof db !== 'undefined') {
@@ -179,58 +221,46 @@
         statusText.style.color = "#F59E0B";
       }
 
-      async function loadConfig() {
-        try {
-          let config = await DataSync.load('rg_config');
-          if (!config) {
-            config = {
-              name: 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA',
-              tech: 'Otávio Barbosa',
-              doc: '48.959.536/0001-65',
-              email: 'comercial@laserexpertbr.com.br',
-              contact: '+55 51 98144-1865',
-              location: 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS',
-              nomeConta1: 'Conta Principal',
-              pix1: 'comercial@laserexpertbr.com.br', bank1: '', agency1: '', account1: '',
-              nomeConta2: 'Conta Secundária',
-              pix2: '', bank2: '', agency2: '', account2: '',
-              nextRsNumber: '1000'
-            };
-          }
+      try {
+        let config = await DataSync.load('rg_config') || {};
+        document.getElementById('configName').value = config.name || 'LASER EXPERT SERVICO E COMERCIO DE PECAS LTDA';
+        document.getElementById('configTech').value = config.tech || 'Otávio Barbosa';
+        document.getElementById('configDoc').value = config.doc || '48.959.536/0001-65';
+        document.getElementById('configEmail').value = config.email || 'comercial@laserexpertbr.com.br';
+        document.getElementById('configContact').value = config.contact || '+55 51 98144-1865';
+        document.getElementById('configLocation').value = config.location || 'Rua Corte Real 487 – Scharlau – São Leopoldo – RS';
+        
+        document.getElementById('configNomeConta1').value = config.nomeConta1 || 'Conta Principal';
+        document.getElementById('configPix1').value = config.pix1 || '';
+        document.getElementById('configBank1').value = config.bank1 || '';
+        document.getElementById('configAgency1').value = config.agency1 || '';
+        document.getElementById('configAccount1').value = config.account1 || '';
 
-          document.getElementById('configName').value = config.name || '';
-          document.getElementById('configTech').value = config.tech || '';
-          document.getElementById('configDoc').value = config.doc || '';
-          document.getElementById('configEmail').value = config.email || '';
-          document.getElementById('configContact').value = config.contact || '';
-          document.getElementById('configLocation').value = config.location || '';
-          
-          document.getElementById('configNomeConta1').value = config.nomeConta1 || '';
-          document.getElementById('configPix1').value = config.pix1 || '';
-          document.getElementById('configBank1').value = config.bank1 || '';
-          document.getElementById('configAgency1').value = config.agency1 || '';
-          document.getElementById('configAccount1').value = config.account1 || '';
+        document.getElementById('configNomeConta2').value = config.nomeConta2 || 'Conta Secundária';
+        document.getElementById('configPix2').value = config.pix2 || '';
+        document.getElementById('configBank2').value = config.bank2 || '';
+        document.getElementById('configAgency2').value = config.agency2 || '';
+        document.getElementById('configAccount2').value = config.account2 || '';
 
-          document.getElementById('configNomeConta2').value = config.nomeConta2 || '';
-          document.getElementById('configPix2').value = config.pix2 || '';
-          document.getElementById('configBank2').value = config.bank2 || '';
-          document.getElementById('configAgency2').value = config.agency2 || '';
-          document.getElementById('configAccount2').value = config.account2 || '';
+        document.getElementById('configNextRs').value = config.nextRsNumber || '1000';
 
-          document.getElementById('configNextRs').value = config.nextRsNumber || '1000';
-        } catch (err) {
-          console.error("Erro ao carregar configurações:", err);
+        if (config.techSignature) {
+          const img = new Image();
+          img.onload = () => { ctx.drawImage(img, 0, 0); };
+          img.src = config.techSignature;
         }
+      } catch (err) {
+        console.error("Erro ao carregar configurações:", err);
       }
 
-      await loadConfig();
-
-      const form = document.getElementById('configForm');
-      form.addEventListener('submit', async (e) => {
+      document.getElementById('configForm').addEventListener('submit', async (e) => {
         e.preventDefault();
+        const techSigData = canvas.toDataURL();
+        
         const configData = {
           name: document.getElementById('configName').value,
           tech: document.getElementById('configTech').value,
+          techSignature: techSigData,
           doc: document.getElementById('configDoc').value,
           email: document.getElementById('configEmail').value,
           contact: document.getElementById('configContact').value,
@@ -253,7 +283,7 @@
 
         try {
           await DataSync.save('rg_config', configData);
-          alert('Configurações salvas e sincronizadas com sucesso!');
+          alert('Configurações e assinatura do técnico salvas com sucesso!');
         } catch (err) {
           alert('Erro ao guardar configurações: ' + err.message);
         }
