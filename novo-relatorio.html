@@ -551,10 +551,26 @@
           console.error("Erro ao carregar relatório para edição", e);
         }
       } else {
+        // Geração robusta do próximo número de RS
         try {
           let reports = await DataSync.load('rg_reports') || [];
           let config = await DataSync.load('rg_config') || {};
-          let nextNum = config.nextRsNumber ? Number(config.nextRsNumber) : (1000 + reports.length);
+          let nextNum = 1000;
+          if (config.nextRsNumber) {
+            nextNum = Number(config.nextRsNumber);
+          } else if (reports.length > 0) {
+            let maxNum = 999;
+            reports.forEach(r => {
+              if (r.number) {
+                const match = r.number.match(/\d+/);
+                if (match) {
+                  const num = parseInt(match[0], 10);
+                  if (num > maxNum) maxNum = num;
+                }
+              }
+            });
+            nextNum = maxNum + 1;
+          }
           document.getElementById('repNumber').value = `RS-${nextNum}`;
         } catch (e) {
           document.getElementById('repNumber').value = 'RS-1000';
@@ -567,9 +583,10 @@
       const editIndex = document.getElementById('editIndex').value;
 
       const clientSigData = clientCanvas.toDataURL();
+      const numRsStr = document.getElementById('repNumber').value;
 
       const reportData = {
-        number: document.getElementById('repNumber').value,
+        number: numRsStr,
         date: document.getElementById('repDate').value,
         client: document.getElementById('repClient').value,
         equipment: document.getElementById('repEquipment').value,
@@ -621,8 +638,9 @@
         } else {
           reports.push(reportData);
           let config = await DataSync.load('rg_config') || {};
-          let currentNext = config.nextRsNumber ? Number(config.nextRsNumber) : 1000;
-          config.nextRsNumber = String(currentNext + 1);
+          const matchNum = numRsStr.match(/\d+/);
+          const currentNum = matchNum ? parseInt(matchNum[0], 10) : (1000 + reports.length);
+          config.nextRsNumber = String(currentNum + 1);
           await DataSync.save('rg_config', config);
         }
 
