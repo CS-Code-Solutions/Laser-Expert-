@@ -1,4 +1,4 @@
-// Módulo de Sincronização com Diagnóstico de Erros
+// Módulo de Sincronização Blindado e Compatível com Firestore
 const DataSync = {
   async save(key, data) {
     localStorage.setItem(key, JSON.stringify(data));
@@ -23,9 +23,14 @@ const DataSync = {
       if (typeof db !== 'undefined') {
         const docRef = await db.collection('laser_expert_data').doc(key).get();
         if (docRef.exists) {
-          const remoteData = docRef.data().content;
-          localStorage.setItem(key, JSON.stringify(remoteData));
-          return remoteData;
+          const rawData = docRef.data();
+          // Compatibilidade robusta: verifica se está guardado em .content ou diretamente no documento
+          const remoteData = (rawData && rawData.content !== undefined) ? rawData.content : rawData;
+          
+          if (remoteData !== null && remoteData !== undefined) {
+            localStorage.setItem(key, JSON.stringify(remoteData));
+            return remoteData;
+          }
         }
       }
     } catch (err) {
@@ -41,9 +46,13 @@ const DataSync = {
       if (typeof db !== 'undefined') {
         db.collection('laser_expert_data').doc(key).onSnapshot((doc) => {
           if (doc.exists) {
-            const remoteData = doc.data().content;
-            localStorage.setItem(key, JSON.stringify(remoteData));
-            if (callback) callback(remoteData);
+            const rawData = doc.data();
+            const remoteData = (rawData && rawData.content !== undefined) ? rawData.content : rawData;
+            
+            if (remoteData !== null && remoteData !== undefined) {
+              localStorage.setItem(key, JSON.stringify(remoteData));
+              if (callback) callback(remoteData);
+            }
           }
         }, (error) => {
           console.error(`[Firebase] Erro no listener de ${key}:`, error);
