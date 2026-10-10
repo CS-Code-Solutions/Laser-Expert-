@@ -7,6 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Laser Expert - Iniciar Sessão</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- Firebase SDKs e Inicialização -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-init.js"></script>
+
   <style>
     body {
       background-color: var(--deep-navy, #0B132B);
@@ -79,6 +86,11 @@
       font-size: 0.85rem;
       margin-bottom: 15px;
       display: none;
+      text-align: left;
+      background: #FEE2E2;
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #FCA5A5;
     }
   </style>
 </head>
@@ -101,7 +113,7 @@
         <input type="password" id="loginPassword" placeholder="••••••••" required>
       </div>
 
-      <button type="submit" class="btn-login">Entrar</button>
+      <button type="submit" id="btnLogin" class="btn-login">Entrar</button>
     </form>
 
     <div class="login-footer">
@@ -120,34 +132,51 @@
         .replace(/'/g, '&#039;');
     }
 
-    function handleLogin(event) {
+    async function handleLogin(event) {
       event.preventDefault();
       const emailInput = document.getElementById('loginEmail').value.trim();
       const passwordInput = document.getElementById('loginPassword').value.trim();
       const errorBox = document.getElementById('loginError');
+      const btnLogin = document.getElementById('btnLogin');
 
       errorBox.style.display = 'none';
       errorBox.textContent = '';
 
-      // Validação de preenchimento e formato básico
       if (!emailInput || !passwordInput) {
         errorBox.textContent = 'Por favor, preencha todos os campos.';
         errorBox.style.display = 'block';
         return;
       }
 
-      // Validação simples de formato de e-mail
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(emailInput)) {
-        errorBox.textContent = 'Por favor, introduza um endereço de e-mail válido.';
-        errorBox.style.display = 'block';
-        return;
-      }
+      try {
+        btnLogin.disabled = true;
+        btnLogin.textContent = 'A autenticar...';
 
-      // Registo de sessão local e redirecionamento seguro
-      localStorage.setItem('rg_logged', 'true');
-      localStorage.setItem('rg_user_email', escapeHTML(emailInput));
-      window.location.href = 'index.html';
+        // Autenticação oficial via Firebase Auth
+        await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
+
+        // Se a autenticação for bem-sucedida, define a sessão local e redireciona
+        localStorage.setItem('rg_logged', 'true');
+        localStorage.setItem('rg_user_email', escapeHTML(emailInput));
+        window.location.href = 'index.html';
+
+      } catch (error) {
+        console.error("Erro de autenticação:", error);
+        let msg = 'Erro ao iniciar sessão. Verifique as suas credenciais.';
+        
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          msg = 'E-mail ou palavra-passe incorretos.';
+        } else if (error.code === 'auth/invalid-email') {
+          msg = 'Formato de e-mail inválido.';
+        } else if (error.code === 'auth/too-many-requests') {
+          msg = 'Muitas tentativas falhadas. Tente novamente mais tarde.';
+        }
+
+        errorBox.textContent = msg;
+        errorBox.style.display = 'block';
+        btnLogin.disabled = false;
+        btnLogin.textContent = 'Entrar';
+      }
     }
   </script>
 
