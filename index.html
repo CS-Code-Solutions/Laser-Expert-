@@ -76,7 +76,18 @@
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
-  <script>
+ <script>
+    // Função de blindagem contra XSS: converte carateres perigosos em entidades seguras
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const form = document.getElementById('clientForm');
     const clientListContainer = document.getElementById('clientListContainer');
     const formTitle = document.getElementById('formTitle');
@@ -98,12 +109,18 @@
         }
 
         clients.forEach((c, index) => {
+          // Utilização de escapeHTML() em todos os campos dinâmicos renderizados via HTML
+          const safeName = escapeHTML(c.name);
+          const safeDoc = escapeHTML(c.doc);
+          const safeEmail = escapeHTML(c.email || '-');
+          const safeAddress = escapeHTML(c.address || '-');
+
           clientListContainer.innerHTML += `
             <div style="border: 1px solid #CBD5E1; padding: 15px; border-radius: 6px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
               <div>
-                <strong style="font-size: 1.05rem; color: #0B132B;">${c.name}</strong><br>
-                <span style="font-size: 0.9rem; color: #475569;">Documento: ${c.doc} | E-mail: ${c.email || '-'}</span><br>
-                <span style="font-size: 0.9rem; color: #475569;">Endereço: ${c.address || '-'}</span>
+                <strong style="font-size: 1.05rem; color: #0B132B;">${safeName}</strong><br>
+                <span style="font-size: 0.9rem; color: #475569;">Documento: ${safeDoc} | E-mail: ${safeEmail}</span><br>
+                <span style="font-size: 0.9rem; color: #475569;">Endereço: ${safeAddress}</span>
               </div>
               <div style="display: flex; gap: 5px;">
                 <button class="btn" style="padding: 6px 12px; font-size: 0.85rem; background-color: #F59E0B;" onclick="editClient(${index})">Editar</button>
@@ -120,7 +137,6 @@
 
     document.addEventListener("DOMContentLoaded", async () => {
       await renderClients();
-      // Ativa escuta em tempo real no Firestore para Clientes
       DataSync.listen('rg_clients', () => {
         renderClients();
       });
@@ -131,10 +147,10 @@
       const editIdx = editIndexInput.value;
       
       const clientData = {
-        name: document.getElementById('clientName').value,
-        email: document.getElementById('clientEmail').value,
-        doc: document.getElementById('clientDoc').value,
-        address: document.getElementById('clientAddress').value
+        name: document.getElementById('clientName').value.trim(),
+        email: document.getElementById('clientEmail').value.trim(),
+        doc: document.getElementById('clientDoc').value.trim(),
+        address: document.getElementById('clientAddress').value.trim()
       };
 
       try {
@@ -159,9 +175,9 @@
     window.editClient = function(index) {
       const c = clients[index];
       if (!c) return;
-      document.getElementById('clientName').value = c.name;
+      document.getElementById('clientName').value = c.name || '';
       document.getElementById('clientEmail').value = c.email || '';
-      document.getElementById('clientDoc').value = c.doc;
+      document.getElementById('clientDoc').value = c.doc || '';
       document.getElementById('clientAddress').value = c.address || '';
       editIndexInput.value = index;
       
