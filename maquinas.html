@@ -103,7 +103,18 @@
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
-  <script>
+ <script>
+    // Função de blindagem contra XSS: converte carateres perigosos em entidades seguras
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     const clientSelect = document.getElementById('machineClient');
     const machineForm = document.getElementById('machineForm');
     const machineTableBody = document.getElementById('machineTableBody');
@@ -138,12 +149,19 @@
         }
 
         machines.forEach((m, index) => {
+          // Sanitização XSS de todos os campos exibidos na tabela
+          const safeClient = escapeHTML(m.client);
+          const safeName = escapeHTML(m.name);
+          const safeBrand = escapeHTML(m.brand || '-');
+          const safeModel = escapeHTML(m.model || '-');
+          const safeSerial = escapeHTML(m.serial || '-');
+
           machineTableBody.innerHTML += `
             <tr>
-              <td>${m.client}</td>
-              <td>${m.name}</td>
-              <td>${m.brand || '-'} / ${m.model || '-'}</td>
-              <td>${m.serial || '-'}</td>
+              <td>${safeClient}</td>
+              <td>${safeName}</td>
+              <td>${safeBrand} / ${safeModel}</td>
+              <td>${safeSerial}</td>
               <td>
                 <div style="display: flex; gap: 5px; flex-wrap: wrap;">
                   <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editMachine(${index})">Editar</button>
@@ -173,10 +191,10 @@
       
       const machineData = {
         client: clientSelect.value,
-        name: document.getElementById('machineName').value,
-        brand: document.getElementById('machineBrand').value,
-        model: document.getElementById('machineModel').value,
-        serial: document.getElementById('machineSerial').value
+        name: document.getElementById('machineName').value.trim(),
+        brand: document.getElementById('machineBrand').value.trim(),
+        model: document.getElementById('machineModel').value.trim(),
+        serial: document.getElementById('machineSerial').value.trim()
       };
 
       try {
