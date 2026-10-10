@@ -15,6 +15,12 @@
 
 <!-- Inicialização Centralizada Correta -->
 <script src="firebase-init.js"></script>
+  <script>
+    // Guardião de Sessão: Se não estiver autenticado, redireciona imediatamente para o login
+    if (localStorage.getItem('rg_logged') !== 'true') {
+      window.location.href = 'login.html';
+    }
+  </script>
 
   <style>
     .signature-pad {
