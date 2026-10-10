@@ -13,8 +13,11 @@
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<!-- Inicialização Centralizada Correta -->
+<!-- Inicialização do Firebase -->
 <script src="firebase-init.js"></script>
+
+<!-- Módulo de Sincronização (FALTAVA ESTA LINHA) -->
+<script src="firebase-sync.js"></script>
   <script>
     // Guardião de Sessão: Se não estiver autenticado, redireciona imediatamente para o login
     if (localStorage.getItem('rg_logged') !== 'true') {
