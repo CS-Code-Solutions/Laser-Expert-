@@ -1,6 +1,6 @@
 // Configuração unificada do Firebase para o projeto Laser Expert
 const firebaseConfig = {
-  apiKey: "AIzaSyDWoTDe-LCuHg1GriVFHmVhAyNIL06PRr0",
+  apiKey: "AIzaSyDWoTdE-LCuHg1GrIVFHmVhAYnIL06PRr0",
   authDomain: "otavio-b80a5.firebaseapp.com",
   projectId: "otavio-b80a5",
   storageBucket: "otavio-b80a5.appspot.com",
