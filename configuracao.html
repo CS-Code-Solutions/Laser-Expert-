@@ -329,27 +329,69 @@
     window.restaurarBackup = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
-      if (!confirm('Atenção: A restauração irá substituir os dados atuais. Deseja continuar?')) {
+      
+      // Validação rigorosa de extensão e tipo de ficheiro
+      if (!file.name.endsWith('.json') && file.type !== 'application/json') {
+        alert('Erro: Por favor, selecione um ficheiro JSON válido.');
         event.target.value = '';
         return;
       }
+
+      if (!confirm('Atenção: A restauração irá substituir os dados atuais pelos do backup. Deseja continuar?')) {
+        event.target.value = '';
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = async function(e) {
         try {
           const backupData = JSON.parse(e.target.result);
-          const keys = ['rg_config', 'rg_clients', 'rg_maquinas', 'rg_relatorios', 'rg_orcamentos'];
-          for (const key of keys) {
-            if (backupData[key] !== undefined) {
-              await DataSync.save(key, backupData[key]);
+          
+          // Verificar se o objeto parseado é válido
+          if (!backupData || typeof backupData !== 'object') {
+            throw new Error('Formato JSON inválido.');
+          }
+
+          // Mapeamento oficial de chaves permitidas para evitar injeção de chaves arbitrárias
+          const validKeysMap = {
+            'rg_config': 'rg_config',
+            'rg_clients': 'rg_clients',
+            'rg_machines': 'rg_machines',
+            'rg_maquinas': 'rg_machines', // Compatibilidade com chaves antigas
+            'rg_reports': 'rg_reports',
+            'rg_relatorios': 'rg_reports', // Compatibilidade com chaves antigas
+            'rg_orcamentos': 'rg_orcamentos'
+          };
+
+          let restoredAny = false;
+          for (const [fileKey, targetKey] of Object.entries(validKeysMap)) {
+            if (backupData[fileKey] !== undefined) {
+              // Validar se o conteúdo é um array (para coleções) ou objeto (para config)
+              const dataToSave = backupData[fileKey];
+              if (targetKey === 'rg_config' && (typeof dataToSave !== 'object' || Array.isArray(dataToSave))) continue;
+              if (targetKey !== 'rg_config' && !Array.isArray(dataToSave)) continue;
+
+              await DataSync.save(targetKey, dataToSave);
+              restoredAny = true;
             }
           }
-          alert('Dados restaurados com sucesso!');
+
+          if (!restoredAny) {
+            alert('Aviso: O ficheiro não contém dados compatíveis com o sistema.');
+            return;
+          }
+
+          alert('Dados restaurados e blindados com sucesso!');
           location.reload();
         } catch (err) {
-          alert('Erro ao processar ficheiro de backup.');
+          alert('Erro ao processar ficheiro de backup: Certifique-se de que o ficheiro está íntegro.');
+          console.error(err);
+        } finally {
+          event.target.value = '';
         }
       };
       reader.readAsText(file);
+    };
     };
   </script>
 </body>
