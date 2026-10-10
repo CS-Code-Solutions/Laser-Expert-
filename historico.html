@@ -151,7 +151,18 @@
     <p>&copy; 2026 Laser Expert — Todos os direitos reservados. | Powered by <strong>CS Code Solutions</strong></p>
   </footer>
 
-  <script>
+ <script>
+    // Função de blindagem contra XSS: converte carateres perigosos em entidades seguras
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     let activeReportData = {};
 
     async function renderHistory() {
@@ -172,13 +183,21 @@
         for (let i = reports.length - 1; i >= 0; i--) {
           const rep = reports[i];
           if (!rep) continue;
+
+          // Sanitização XSS dos dados exibidos na tabela
+          const safeNumber = escapeHTML(rep.number || 'RS-1000');
+          const safeDate = escapeHTML(rep.date || '-');
+          const safeClient = escapeHTML(rep.client || '-');
+          const safeEquipment = escapeHTML(rep.equipment || '-');
+          const safeNature = escapeHTML(rep.serviceNature || rep.type || '-');
+
           htmlRows += `
             <tr>
-              <td><strong>${rep.number || 'RS-1000'}</strong></td>
-              <td>${rep.date || '-'}</td>
-              <td>${rep.client || '-'}</td>
-              <td>${rep.equipment || '-'}</td>
-              <td>${rep.serviceNature || rep.type || '-'}</td>
+              <td><strong>${safeNumber}</strong></td>
+              <td>${safeDate}</td>
+              <td>${safeClient}</td>
+              <td>${safeEquipment}</td>
+              <td>${safeNature}</td>
               <td class="no-print" style="display: flex; gap: 5px; flex-wrap: wrap;">
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #1D4ED8;" onclick="openReportPreview(${i})">Gerar RS</button>
                 <button class="btn" style="padding: 4px 8px; font-size: 0.8rem; background-color: #F59E0B;" onclick="editReport(${i})">Editar</button>
@@ -301,7 +320,7 @@
           <div class="signature-box">
             ${techSignature ? `<img src="${techSignature}" alt="Assinatura Técnico">` : '<p style="height: 50px;"></p>'}
             <p>________________________________________</p>
-            <p><strong>Técnico Responsável:</strong> ${config.tech || 'Otávio Barbosa'}</p>
+            <p><strong>Técnico Responsável:</strong> ${escapeHTML(config.tech || 'Otávio Barbosa')}</p>
           </div>
           <div class="signature-box">
             ${clientSignature ? `<img src="${clientSignature}" alt="Assinatura Cliente">` : '<p style="height: 50px;"></p>'}
@@ -318,8 +337,8 @@
           itemsHtml += `
             <div class="section-box" style="text-align: center; page-break-inside: avoid; margin-top: 15px;">
               <div class="watermark">LASER EXPERT</div>
-              <div class="section-title" style="text-align: left;">${anexo.titulo || 'Foto do Equipamento'}</div>
-              <img src="${anexo.imagem}" alt="${anexo.titulo || ''}" style="max-width: 100%; max-height: 350px; height: auto; object-fit: contain; border-radius: 4px; border: 1px solid #CBD5E1; display: block; margin: 0 auto;">
+              <div class="section-title" style="text-align: left;">${escapeHTML(anexo.titulo || 'Foto do Equipamento')}</div>
+              <img src="${anexo.imagem}" alt="${escapeHTML(anexo.titulo || '')}" style="max-width: 100%; max-height: 350px; height: auto; object-fit: contain; border-radius: 4px; border: 1px solid #CBD5E1; display: block; margin: 0 auto;">
             </div>
           `;
         });
@@ -329,7 +348,7 @@
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
               <h1>ANEXOS / FOTOGRAFIAS DO EQUIPAMENTO</h1>
-              <p><strong>RS Nº:</strong> ${rep.number} | <strong>Cliente:</strong> ${rep.client}</p>
+              <p><strong>RS Nº:</strong> ${escapeHTML(rep.number)} | <strong>Cliente:</strong> ${escapeHTML(rep.client)}</p>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
@@ -337,6 +356,26 @@
           </div>
         `;
       }
+
+      // Sanitização de campos do relatório na visualização impressa / modal
+      const safeRepNum = escapeHTML(rep.number);
+      const safeRepDate = escapeHTML(rep.date);
+      const safeCfgName = escapeHTML(config.name);
+      const safeCfgDoc = escapeHTML(config.doc);
+      const safeCfgEmail = escapeHTML(config.email || '-');
+      const safeCfgContact = escapeHTML(config.contact);
+      const safeCfgLocation = escapeHTML(config.location);
+      const safeRepClient = escapeHTML(rep.client);
+      const safeClientDoc = escapeHTML(clientObj.doc || clientObj.cnpj || '-');
+      const safeClientEmail = escapeHTML(clientObj.email || '-');
+      const safeClientAddress = escapeHTML(clientObj.address || '-');
+      const safeRepEq = escapeHTML(rep.equipment || '-');
+      const safeRepBrand = escapeHTML(rep.brand || '-');
+      const safeRepModel = escapeHTML(rep.model || '-');
+      const safeRepSerial = escapeHTML(rep.serialNumber || '-');
+      const safeServiceNature = escapeHTML(rep.serviceNature || '-');
+      const safeServiceArea = escapeHTML(rep.serviceArea || '-');
+      const safeDesc = escapeHTML(rep.desc || '-');
 
       const fullReportHtml = `
         <div class="print-body" id="pdfContentToPrint">
@@ -346,49 +385,49 @@
             <img src="logo.png" alt="Logo">
             <div class="print-header-info">
               <h1>RELATÓRIO DE SERVIÇO (RS)</h1>
-              <p><strong>Nº do RS:</strong> ${rep.number} | <strong>Data:</strong> ${rep.date}</p>
+              <p><strong>Nº do RS:</strong> ${safeRepNum} | <strong>Data:</strong> ${safeRepDate}</p>
             </div>
           </div>
 
           <div class="section-box">
             <div class="section-title">Dados da Empresa / Prestador de Serviço</div>
             <div class="grid-2">
-              <p><strong>Razão Social:</strong> ${config.name}</p>
-              <p><strong>CNPJ:</strong> ${config.doc}</p>
-              <p><strong>E-mail:</strong> ${config.email || '-'}</p>
-              <p><strong>Telefone / WhatsApp:</strong> ${config.contact}</p>
-              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${config.location}</p>
+              <p><strong>Razão Social:</strong> ${safeCfgName}</p>
+              <p><strong>CNPJ:</strong> ${safeCfgDoc}</p>
+              <p><strong>E-mail:</strong> ${safeCfgEmail}</p>
+              <p><strong>Telefone / WhatsApp:</strong> ${safeCfgContact}</p>
+              <p style="grid-column: span 2;"><strong>Endereço:</strong> ${safeCfgLocation}</p>
             </div>
           </div>
 
           <div class="section-box">
             <div class="section-title">Dados do Cliente</div>
             <div class="grid-2">
-              <p><strong>Nome / Razão Social:</strong> ${rep.client}</p>
-              <p><strong>CPF / CNPJ:</strong> ${clientObj.doc || clientObj.cnpj || '-'}</p>
-              <p><strong>E-mail:</strong> ${clientObj.email || '-'}</p>
-              <p><strong>Endereço:</strong> ${clientObj.address || '-'}</p>
+              <p><strong>Nome / Razão Social:</strong> ${safeRepClient}</p>
+              <p><strong>CPF / CNPJ:</strong> ${safeClientDoc}</p>
+              <p><strong>E-mail:</strong> ${safeClientEmail}</p>
+              <p><strong>Endereço:</strong> ${safeClientAddress}</p>
             </div>
           </div>
 
           <div class="section-box">
             <div class="section-title">Dados do Equipamento / Máquina</div>
             <div class="grid-2">
-              <p><strong>Equipamento:</strong> ${rep.equipment || '-'}</p>
-              <p><strong>Marca:</strong> ${rep.brand || '-'}</p>
-              <p><strong>Modelo:</strong> ${rep.model || '-'}</p>
-              <p><strong>Matrícula / N° de Série:</strong> ${rep.serialNumber || '-'}</p>
+              <p><strong>Equipamento:</strong> ${safeRepEq}</p>
+              <p><strong>Marca:</strong> ${safeRepBrand}</p>
+              <p><strong>Modelo:</strong> ${safeRepModel}</p>
+              <p><strong>Matrícula / N° de Série:</strong> ${safeRepSerial}</p>
             </div>
           </div>
 
           <div class="section-box">
             <div class="section-title">Registro do Serviço Realizado</div>
             <div class="grid-2" style="margin-bottom: 4px;">
-              <p><strong>Tipo de Manutenção:</strong> ${rep.serviceNature || '-'}</p>
-              <p><strong>Área de Serviço:</strong> ${rep.serviceArea || '-'}</p>
+              <p><strong>Tipo de Manutenção:</strong> ${safeServiceNature}</p>
+              <p><strong>Área de Serviço:</strong> ${safeServiceArea}</p>
             </div>
             <p><strong>Descrição Detalhada:</strong></p>
-            <p style="white-space: pre-wrap; margin-top: 2px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${rep.desc || '-'}</p>
+            <p style="white-space: pre-wrap; margin-top: 2px; background: #FFF; padding: 6px; border: 1px solid #E2E8F0; border-radius: 4px;">${safeDesc}</p>
           </div>
 
           <div class="section-box">
