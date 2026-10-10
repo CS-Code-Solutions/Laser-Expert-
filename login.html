@@ -8,7 +8,7 @@
   <title>Laser Expert - Iniciar Sessão</title>
   <link rel="stylesheet" href="style.css">
 
-  <!-- Firebase SDKs e Inicialização -->
+  <!-- Apenas os SDKs Compat oficiais e o firebase-init.js unificado -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -152,22 +152,30 @@
         btnLogin.disabled = true;
         btnLogin.textContent = 'A autenticar...';
 
-        // Autenticação oficial via Firebase Auth
-        await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
+        // Garantir que o auth do firebase está carregado
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+          throw new Error("O Firebase Auth não foi inicializado corretamente.");
+        }
 
-        // Se a autenticação for bem-sucedida, define a sessão local e redireciona
+        // Tenta autenticar estritamente no Firebase
+        const userCredential = await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
+        console.log("Utilizador autenticado com sucesso:", userCredential.user.email);
+
+        // Registo de sessão local e redirecionamento
         localStorage.setItem('rg_logged', 'true');
         localStorage.setItem('rg_user_email', escapeHTML(emailInput));
         window.location.href = 'index.html';
 
       } catch (error) {
-        console.error("Erro de autenticação:", error);
-        let msg = 'Erro ao iniciar sessão. Verifique as suas credenciais.';
+        console.error("Erro detalhado no login Firebase:", error);
+        let msg = 'Erro ao iniciar sessão: ' + error.message;
         
         if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
-          msg = 'E-mail ou palavra-passe incorretos.';
+          msg = 'E-mail ou palavra-passe incorretos ou utilizador não registado na nuvem.';
         } else if (error.code === 'auth/invalid-email') {
           msg = 'Formato de e-mail inválido.';
+        } else if (error.code === 'auth/operation-not-allowed') {
+          msg = 'A autenticação por E-mail/Password não está ativada na consola do Firebase.';
         } else if (error.code === 'auth/too-many-requests') {
           msg = 'Muitas tentativas falhadas. Tente novamente mais tarde.';
         }
