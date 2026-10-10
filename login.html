@@ -8,19 +8,13 @@
   <title>Laser Expert - Iniciar Sessão</title>
   <link rel="stylesheet" href="style.css">
 
-<!-- Firebase SDKs Compat -->
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <!-- Firebase SDKs Compat -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
-<!-- Inicialização Centralizada Correta -->
-<script src="firebase-init.js"></script>
-  <script>
-    // Guardião de Sessão: Se não estiver autenticado, redireciona imediatamente para o login
-    if (localStorage.getItem('rg_logged') !== 'true') {
-      window.location.href = 'login.html';
-    }
-  </script>
+  <!-- Inicialização Centralizada Correta -->
+  <script src="firebase-init.js"></script>
 
   <style>
     body {
@@ -160,16 +154,13 @@
         btnLogin.disabled = true;
         btnLogin.textContent = 'A autenticar...';
 
-        // Garantir que o auth do firebase está carregado
         if (typeof firebase === 'undefined' || !firebase.auth) {
           throw new Error("O Firebase Auth não foi inicializado corretamente.");
         }
 
-        // Tenta autenticar estritamente no Firebase
         const userCredential = await firebase.auth().signInWithEmailAndPassword(emailInput, passwordInput);
         console.log("Utilizador autenticado com sucesso:", userCredential.user.email);
 
-        // Registo de sessão local e redirecionamento
         localStorage.setItem('rg_logged', 'true');
         localStorage.setItem('rg_user_email', escapeHTML(emailInput));
         window.location.href = 'index.html';
